@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Flashcards">
+  <meta name="theme-color" content="#fbfaf6">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="icon" href="icon.png">
+  <title>Portuguese Flashcards</title>
+  <style>
+    :root { color-scheme: light; --ink:#172b2a; --muted:#61716e; --green:#0c6958; --mint:#e5f3ee; --paper:#fbfaf6; --line:#dce5df; --gold:#f0c66d; }
+    * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    body { margin:0; min-height:100vh; background:radial-gradient(circle at 15% 10%,#e5f3ee 0,transparent 34%),var(--paper); color:var(--ink); font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    main { width:min(100%,720px); margin:0 auto; padding:calc(env(safe-area-inset-top) + 28px) 16px calc(env(safe-area-inset-bottom) + 28px); }
+    .eyebrow { margin:0 0 4px; color:var(--green); font-size:.78rem; font-weight:750; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { margin:0 0 20px; font-size:clamp(1.6rem,5vw,2.2rem); line-height:1.15; }
+    ul { list-style:none; margin:0; padding:0; display:grid; gap:12px; }
+    .deck { display:flex; justify-content:space-between; align-items:center; gap:14px; padding:18px; border:1px solid var(--line); border-radius:20px; background:white; box-shadow:0 10px 30px #193d320d; }
+    .deck h2 { margin:0 0 2px; font-size:1.15rem; }
+    .deck p { margin:0; color:var(--muted); font-size:.88rem; }
+    .deck p.known { color:var(--green); font-weight:650; }
+    .deck p.known:empty { display:none; }
+    .links { display:flex; gap:8px; flex:none; }
+    .btn, button { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:8px 16px; border:1px solid var(--line); border-radius:12px; background:white; color:var(--ink); font:inherit; font-weight:650; text-decoration:none; cursor:pointer; }
+    .btn.primary { border-color:var(--green); background:var(--green); color:white; }
+    .bar { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-top:22px; color:var(--muted); font-size:.85rem; }
+    @media (max-width:520px) { .deck { flex-direction:column; align-items:stretch; } .links .btn { flex:1; } }
+  </style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Português europeu</p>
+  <h1>Portuguese Flashcards</h1>
+  <ul>
+__DECKS__
+  </ul>
+  <div class="bar"><span>Tip: in Safari tap Share → “Add to Home Screen”.</span><button id="sync-btn">☁︎ Sync: off</button></div>
+</main>
+<script src="sync.js"></script>
+<script>
+// put the right version first for this device
+const touch = matchMedia('(hover: none) and (pointer: coarse)').matches;
+if (!touch) document.querySelectorAll('.links').forEach(l => { const m = l.querySelector('[data-mobile]'), d = l.querySelector('[data-desktop]'); m.classList.remove('primary'); d.classList.add('primary'); l.prepend(d); });
+function counts() {
+  document.querySelectorAll('.deck').forEach(li => {
+    const n = Sync.deckCount(li.dataset.deck);
+    li.querySelector('.known').textContent = n ? `Known: ${n} of ${li.dataset.total}` : '';
+  });
+}
+Sync.onChange(counts); counts();
+Sync.onStatus(t => { document.getElementById('sync-btn').textContent = '☁︎ ' + t; });
+document.getElementById('sync-btn').addEventListener('click', () => Sync.openSettings());
+</script>
+</body>
+</html>
