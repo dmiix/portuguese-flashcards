@@ -1,4 +1,10 @@
 [
   {"slug": "numbers-and-days", "title": "Numbers and Days", "eyebrow": "Portuguese · Flashcards",
-   "source": "../03-Flashcards/Numbers and Days"}
+   "source": "../03-Flashcards/Numbers and Days"},
+  {"slug": "pl-022-clothing-vocabulary", "title": "022 · Vocabulary — at the clothing store", "eyebrow": "Portuguese Lab · Episode 022",
+   "source": "../77-Portuguese Lab/022 - Vocabulary - at the clothing store in Portugal"},
+  {"slug": "pl-023-clothing-phrases", "title": "023 · Phrases — at the clothing store", "eyebrow": "Portuguese Lab · Episode 023",
+   "source": "../77-Portuguese Lab/023 - Phrases - at the clothing store"},
+  {"slug": "pl-024-clothing-dialogue", "title": "024 · Dialogue — at the clothing store", "eyebrow": "Portuguese Lab · Episode 024",
+   "source": "../77-Portuguese Lab/024 - Dialogue - at the clothing store"}
 ]

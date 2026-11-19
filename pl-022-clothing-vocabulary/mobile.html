@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="022 · Vocabulary — at the clothing store">
+  <meta name="theme-color" content="#fbfaf6">
+  <link rel="apple-touch-icon" href="../icon.png">
+  <title>022 · Vocabulary — at the clothing store — Flashcards</title>
+  <style>
+    :root { color-scheme: light; --ink:#172b2a; --muted:#61716e; --green:#0c6958; --mint:#e5f3ee; --paper:#fbfaf6; --line:#dce5df; --gold:#f0c66d; }
+    * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html, body { height:100%; }
+    body { margin:0; background:radial-gradient(circle at 15% 10%,#e5f3ee 0,transparent 34%),var(--paper); color:var(--ink); font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; overscroll-behavior:none; }
+    main { display:flex; flex-direction:column; width:min(100%,760px); min-height:100%; margin:0 auto;
+      padding:calc(env(safe-area-inset-top) + 12px) calc(env(safe-area-inset-right) + 16px) calc(env(safe-area-inset-bottom) + 12px) calc(env(safe-area-inset-left) + 16px); }
+    .top { display:flex; justify-content:space-between; align-items:flex-end; gap:10px; margin-bottom:10px; }
+    .eyebrow { margin:0 0 2px; color:var(--green); font-size:.72rem; font-weight:750; letter-spacing:.12em; text-transform:uppercase; }
+    .eyebrow a { color:inherit; text-decoration:none; }
+    h1 { margin:0; font-size:1.35rem; line-height:1.15; }
+    .count { color:var(--muted); font-size:.85rem; font-variant-numeric:tabular-nums; white-space:nowrap; text-align:right; }
+    .chips { display:flex; gap:6px; overflow-x:auto; margin:0 -16px 10px; padding:2px 16px; scrollbar-width:none; }
+    .chips::-webkit-scrollbar { display:none; }
+    .chips button { flex:none; min-height:36px; padding:4px 14px; border-radius:99px; font-size:.85rem; color:var(--muted); }
+    .chips button[aria-pressed="true"] { border-color:var(--green); background:var(--mint); color:var(--green); }
+    .progress { height:6px; overflow:hidden; margin:0 0 12px; border-radius:99px; background:var(--line); }
+    .progress span { display:block; width:0; height:100%; border-radius:inherit; background:var(--green); transition:width .2s ease; }
+    .stage { position:relative; flex:1; display:flex; flex-direction:column; min-height:300px; }
+    .card-wrap { flex:1; display:flex; perspective:1200px; touch-action:pan-y; }
+    .card { position:relative; flex:1; min-height:300px; transform-style:preserve-3d; transition:transform .4s cubic-bezier(.2,.7,.2,1); outline:none; touch-action:manipulation; }
+    .card.flipped { transform:rotateY(180deg); }
+    .card.swipe-l { animation:outL .18s ease-in; } .card.swipe-r { animation:outR .18s ease-in; }
+    @keyframes outL { to { translate:-40px 0; opacity:.3; } } @keyframes outR { to { translate:40px 0; opacity:.3; } }
+    .face { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:52px 20px; border:1px solid var(--line); border-radius:24px; background:white; box-shadow:0 14px 45px #193d3212; backface-visibility:hidden; -webkit-backface-visibility:hidden; text-align:center; user-select:none; -webkit-user-select:none; }
+    .back { transform:rotateY(180deg); background:var(--mint); }
+    .side-label { position:absolute; top:18px; left:20px; color:var(--muted); font-size:.72rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+    .say { position:absolute; bottom:8px; right:8px; width:52px; height:52px; padding:0; border-radius:99px; font-size:1.35rem; }
+    .speaker { margin:0 0 8px; color:var(--green); font-size:.85rem; font-weight:750; letter-spacing:.08em; text-transform:uppercase; }
+    .speaker:empty { display:none; }
+    .term { margin:0; font-size:clamp(2.2rem,10vw,4rem); font-weight:750; line-height:1.15; overflow-wrap:anywhere; }
+    .term.md { font-size:clamp(1.6rem,6.5vw,2.6rem); line-height:1.25; }
+    .term.lg { font-size:clamp(1.2rem,4.6vw,1.7rem); line-height:1.35; font-weight:700; }
+    .hint { margin:16px 0 0; color:var(--muted); font-size:.9rem; }
+    .category { position:absolute; bottom:18px; padding:5px 11px; border-radius:99px; background:#f3f5f2; color:var(--green); font-size:.8rem; font-weight:700; }
+    .back .category { background:#d4ebe3; }
+    button { min-height:48px; padding:10px 14px; border:1px solid var(--line); border-radius:14px; background:white; color:var(--ink); font:inherit; font-weight:650; cursor:pointer; touch-action:manipulation; }
+    button:active { transform:scale(.97); }
+    button:focus-visible,.card:focus-visible { outline:3px solid var(--gold); outline-offset:3px; }
+    button.primary { border-color:var(--green); background:var(--green); color:white; }
+    button.known { border-color:var(--green); color:var(--green); }
+    .controls { display:grid; grid-template-columns:1fr 1.4fr 1fr; gap:8px; margin-top:12px; }
+    .controls .known { grid-column:1 / -1; min-height:56px; font-size:1.05rem; }
+    .audio-status { min-height:1.3em; margin:8px 0 0; color:var(--muted); text-align:center; font-size:.85rem; }
+    .done { display:none; flex:1; flex-direction:column; justify-content:center; align-items:center; border:1px solid var(--line); border-radius:24px; background:var(--mint); text-align:center; padding:28px 20px; }
+    .done h2 { margin:0 0 8px; font-size:1.7rem; }
+    .done p { margin:0 0 18px; color:var(--muted); }
+    .done .row { display:flex; flex-direction:column; gap:10px; width:min(100%,320px); }
+    main.all-known .done.all { display:flex; }
+    main.all-known .card-wrap, main.all-known .controls, main.round-end .card-wrap, main.round-end .controls { display:none; }
+    main.round-end:not(.all-known) .done.round { display:flex; }
+    .more { margin-top:6px; }
+    .more summary { list-style:none; text-align:center; color:var(--green); font-weight:650; padding:10px; cursor:pointer; }
+    .more summary::-webkit-details-marker { display:none; }
+    .more .grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .more .grid button { font-size:.92rem; }
+    .help { margin:10px 0 0; color:var(--muted); text-align:center; font-size:.8rem; }
+    .help a { color:var(--green); }
+    @media (min-width:700px) { .term { font-size:clamp(3rem,7vw,4.6rem); } .more .grid { grid-template-columns:repeat(3,1fr); } }
+    @media (orientation:landscape) and (max-height:500px) { .card { min-height:200px; } .stage { min-height:200px; } .controls { grid-template-columns:1fr 1.4fr 1fr 1.4fr; } .controls .known { grid-column:auto; min-height:48px; } }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after{transition:none!important;animation:none!important} }
+  </style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <div><p class="eyebrow"><a href="../">← All decks</a></p><h1>022 · Vocabulary — at the clothing store</h1></div>
+    <div class="count" id="count" aria-live="polite"></div>
+  </header>
+  <div class="chips" id="chips" role="group" aria-label="Sections"></div>
+  <div class="progress" aria-hidden="true"><span id="bar"></span></div>
+  <div class="stage">
+    <section class="card-wrap" id="wrap" aria-label="Flashcard">
+      <article class="card" id="card" tabindex="0" role="button" aria-label="Flashcard. Tap to flip.">
+        <div class="face front"><span class="side-label" id="front-label">Português</span><button class="say" data-say aria-label="Hear Portuguese">🔊</button><p class="speaker" id="front-speaker"></p><p class="term" id="front"></p><p class="hint">Tap to flip · swipe for next</p><span class="category" id="category"></span></div>
+        <div class="face back"><span class="side-label" id="back-label">English</span><button class="say" data-say aria-label="Hear Portuguese">🔊</button><p class="speaker" id="back-speaker"></p><p class="term" id="back"></p><p class="hint">Swipe ← next · → previous</p><span class="category" id="back-category"></span></div>
+      </article>
+    </section>
+    <section class="done all" aria-live="polite"><h2>All known! 🎉</h2><p>You marked every card in this section as known.</p><div class="row"><button class="primary" id="restart">Study again</button></div></section>
+    <section class="done round" aria-live="polite"><h2>Round complete! 👏</h2><p id="round-text"></p><div class="row"><button class="primary" id="again">Start again</button><button id="again-shuffle">Shuffle &amp; start again</button><button id="back-last">← Back to last card</button></div></section>
+  </div>
+  <nav class="controls" aria-label="Flashcard controls">
+    <button id="prev" aria-label="Previous card">←</button>
+    <button class="primary" id="flip">Flip</button>
+    <button id="next" aria-label="Next card">→</button>
+    <button class="known" id="know">✓ Know it</button>
+  </nav>
+  <p class="audio-status" id="audio-status" aria-live="polite"></p>
+  <details class="more">
+    <summary>More options</summary>
+    <div class="grid">
+      <button id="shuffle">Shuffle deck</button>
+      <button id="direction">English → Portuguese</button>
+      <button id="autoplay" aria-pressed="true">Auto-play: on</button>
+      <button id="reset">Reset known</button>
+      <button id="sync-btn">☁︎ Sync: off</button>
+    </div>
+  </details>
+  <p class="help">Audio: Microsoft Raquel (pt-PT) · <a href="index.html">Mac version</a></p>
+</main>
+<script src="../sync.js"></script>
+<script>
+const cards = [{"s": "roupa", "pt": "blazer", "en": "blazer", "a": "audio/pl022-001-blazer.mp3"}, {"s": "roupa", "pt": "blusa", "en": "blouse", "a": "audio/pl022-002-blusa.mp3"}, {"s": "roupa", "pt": "blusa de alças", "en": "tank top", "a": "audio/pl022-003-blusa-de-alcas.mp3"}, {"s": "roupa", "pt": "blusão", "en": "jacket", "a": "audio/pl022-004-blusao.mp3"}, {"s": "roupa", "pt": "boxers", "en": "boxers", "a": "audio/pl022-005-boxers.mp3"}, {"s": "roupa", "pt": "cachecol", "en": "scarf", "a": "audio/pl022-006-cachecol.mp3"}, {"s": "roupa", "pt": "calças", "en": "trousers", "a": "audio/pl022-007-calcas.mp3"}, {"s": "roupa", "pt": "calças de ganga", "en": "jeans", "a": "audio/pl022-008-calcas-de-ganga.mp3"}, {"s": "roupa", "pt": "calções", "en": "shorts", "a": "audio/pl022-009-calcoes.mp3"}, {"s": "roupa", "pt": "camisa", "en": "shirt", "a": "audio/pl022-010-camisa.mp3"}, {"s": "roupa", "pt": "camisa de dormir", "en": "nightgown", "a": "audio/pl022-011-camisa-de-dormir.mp3"}, {"s": "roupa", "pt": "camisola", "en": "sweater", "a": "audio/pl022-012-camisola.mp3"}, {"s": "roupa", "pt": "casaco", "en": "coat", "a": "audio/pl022-013-casaco.mp3"}, {"s": "roupa", "pt": "casaco de cabedal", "en": "leather jacket", "a": "audio/pl022-014-casaco-de-cabedal.mp3"}, {"s": "roupa", "pt": "casaco de malha", "en": "cardigan", "a": "audio/pl022-015-casaco-de-malha.mp3"}, {"s": "roupa", "pt": "casaco impermeável", "en": "raincoat", "a": "audio/pl022-016-casaco-impermeavel.mp3"}, {"s": "roupa", "pt": "chapéu", "en": "hat", "a": "audio/pl022-017-chapeu.mp3"}, {"s": "roupa", "pt": "cinto", "en": "belt", "a": "audio/pl022-018-cinto.mp3"}, {"s": "roupa", "pt": "cuecas", "en": "knickers", "a": "audio/pl022-019-cuecas.mp3"}, {"s": "roupa", "pt": "fato", "en": "suit", "a": "audio/pl022-020-fato.mp3"}, {"s": "roupa", "pt": "gabardina", "en": "gabardine", "a": "audio/pl022-021-gabardina.mp3"}, {"s": "roupa", "pt": "gorro", "en": "cap", "a": "audio/pl022-022-gorro.mp3"}, {"s": "roupa", "pt": "gravata", "en": "tie", "a": "audio/pl022-023-gravata.mp3"}, {"s": "roupa", "pt": "luva", "en": "glove", "a": "audio/pl022-024-luva.mp3"}, {"s": "roupa", "pt": "mala", "en": "bag", "a": "audio/pl022-025-mala.mp3"}, {"s": "roupa", "pt": "meia", "en": "sock", "a": "audio/pl022-026-meia.mp3"}, {"s": "roupa", "pt": "pólo", "en": "polo shirt", "a": "audio/pl022-027-polo.mp3"}, {"s": "roupa", "pt": "pullover", "en": "pullover", "a": "audio/pl022-028-pullover.mp3"}, {"s": "roupa", "pt": "roupa de homem", "en": "men's clothing", "a": "audio/pl022-029-roupa-de-homem.mp3"}, {"s": "roupa", "pt": "roupa de mulher", "en": "women's clothing", "a": "audio/pl022-030-roupa-de-mulher.mp3"}, {"s": "roupa", "pt": "roupa interior", "en": "underwear", "a": "audio/pl022-031-roupa-interior.mp3"}, {"s": "roupa", "pt": "saia", "en": "skirt", "a": "audio/pl022-032-saia.mp3"}, {"s": "roupa", "pt": "sobretudo", "en": "overcoat", "a": "audio/pl022-033-sobretudo.mp3"}, {"s": "roupa", "pt": "soutien", "en": "bra", "a": "audio/pl022-034-soutien.mp3"}, {"s": "roupa", "pt": "sweatshirt", "en": "sweatshirt", "a": "audio/pl022-035-sweatshirt.mp3"}, {"s": "roupa", "pt": "t-shirt", "en": "t-shirt", "a": "audio/pl022-036-t-shirt.mp3"}, {"s": "roupa", "pt": "top", "en": "top", "a": "audio/pl022-037-top.mp3"}, {"s": "roupa", "pt": "vestido", "en": "dress", "a": "audio/pl022-038-vestido.mp3"}, {"s": "loja", "pt": "caixa", "en": "register", "a": "audio/pl022-039-caixa.mp3"}, {"s": "loja", "pt": "armazém", "en": "warehouse", "a": "audio/pl022-040-armazem.mp3"}, {"s": "loja", "pt": "balcão", "en": "counter", "a": "audio/pl022-041-balcao.mp3"}, {"s": "loja", "pt": "cartão de crédito", "en": "credit card", "a": "audio/pl022-042-cartao-de-credito.mp3"}, {"s": "loja", "pt": "cartão multibanco", "en": "debit card", "a": "audio/pl022-043-cartao-multibanco.mp3"}, {"s": "loja", "pt": "número", "en": "number", "a": "audio/pl022-044-numero.mp3"}, {"s": "loja", "pt": "tamanho", "en": "size", "a": "audio/pl022-045-tamanho.mp3"}, {"s": "loja", "pt": "preço", "en": "price", "a": "audio/pl022-046-preco.mp3"}, {"s": "loja", "pt": "provador / cabine de prova", "en": "fitting room", "a": "audio/pl022-047-provador-cabine-de-prova.mp3"}, {"s": "loja", "pt": "vitrine", "en": "shop window", "a": "audio/pl022-048-vitrine.mp3"}, {"s": "materiais", "pt": "algodão", "en": "cotton", "a": "audio/pl022-049-algodao.mp3"}, {"s": "materiais", "pt": "ganga", "en": "denim", "a": "audio/pl022-050-ganga.mp3"}, {"s": "materiais", "pt": "lã", "en": "wool", "a": "audio/pl022-051-la.mp3"}, {"s": "materiais", "pt": "pele", "en": "leather", "a": "audio/pl022-052-pele.mp3"}, {"s": "materiais", "pt": "seda", "en": "silk", "a": "audio/pl022-053-seda.mp3"}, {"s": "adjetivos", "pt": "pequeno", "en": "small", "a": "audio/pl022-054-pequeno.mp3"}, {"s": "adjetivos", "pt": "grande", "en": "big", "a": "audio/pl022-055-grande.mp3"}, {"s": "adjetivos", "pt": "largo", "en": "large", "a": "audio/pl022-056-largo.mp3"}, {"s": "adjetivos", "pt": "apertado", "en": "tight", "a": "audio/pl022-057-apertado.mp3"}, {"s": "adjetivos", "pt": "comprido", "en": "long", "a": "audio/pl022-058-comprido.mp3"}, {"s": "adjetivos", "pt": "curto", "en": "short", "a": "audio/pl022-059-curto.mp3"}, {"s": "adjetivos", "pt": "bonito", "en": "pretty", "a": "audio/pl022-060-bonito.mp3"}, {"s": "adjetivos", "pt": "feio", "en": "ugly", "a": "audio/pl022-061-feio.mp3"}, {"s": "adjetivos", "pt": "escuro", "en": "dark", "a": "audio/pl022-062-escuro.mp3"}, {"s": "adjetivos", "pt": "claro", "en": "bright", "a": "audio/pl022-063-claro.mp3"}, {"s": "adjetivos", "pt": "confortável", "en": "comfortable", "a": "audio/pl022-064-confortavel.mp3"}, {"s": "adjetivos", "pt": "desconfortável", "en": "uncomfortable", "a": "audio/pl022-065-desconfortavel.mp3"}, {"s": "adjetivos", "pt": "caro", "en": "expensive", "a": "audio/pl022-066-caro.mp3"}, {"s": "adjetivos", "pt": "barato", "en": "cheap", "a": "audio/pl022-067-barato.mp3"}, {"s": "adjetivos", "pt": "elegante", "en": "elegant", "a": "audio/pl022-068-elegante.mp3"}, {"s": "cores", "pt": "amarelo", "en": "yellow", "a": "audio/pl022-069-amarelo.mp3"}, {"s": "cores", "pt": "azul", "en": "blue", "a": "audio/pl022-070-azul.mp3"}, {"s": "cores", "pt": "branco", "en": "white", "a": "audio/pl022-071-branco.mp3"}, {"s": "cores", "pt": "castanho", "en": "brown", "a": "audio/pl022-072-castanho.mp3"}, {"s": "cores", "pt": "cinzento", "en": "gray", "a": "audio/pl022-073-cinzento.mp3"}, {"s": "cores", "pt": "car-de-laranja", "en": "orange", "a": "audio/pl022-074-car-de-laranja.mp3"}, {"s": "cores", "pt": "cor-de-rosa", "en": "pink", "a": "audio/pl022-075-cor-de-rosa.mp3"}, {"s": "cores", "pt": "preto", "en": "black", "a": "audio/pl022-076-preto.mp3"}, {"s": "cores", "pt": "roxo", "en": "purple", "a": "audio/pl022-077-roxo.mp3"}, {"s": "cores", "pt": "verde", "en": "green", "a": "audio/pl022-078-verde.mp3"}, {"s": "cores", "pt": "vermelho", "en": "red", "a": "audio/pl022-079-vermelho.mp3"}, {"s": "verbos", "pt": "custar", "en": "to cost", "a": "audio/pl022-080-custar.mp3"}, {"s": "verbos", "pt": "detestar", "en": "to hate", "a": "audio/pl022-081-detestar.mp3"}, {"s": "verbos", "pt": "estar na moda", "en": "to be in vogue", "a": "audio/pl022-082-estar-na-moda.mp3"}, {"s": "verbos", "pt": "ficar", "en": "to be/look", "a": "audio/pl022-083-ficar.mp3"}, {"s": "verbos", "pt": "ficar bem", "en": "to look good (fit)", "a": "audio/pl022-084-ficar-bem.mp3"}, {"s": "verbos", "pt": "ficar mal", "en": "to look bad", "a": "audio/pl022-085-ficar-mal.mp3"}, {"s": "verbos", "pt": "gostar", "en": "to like", "a": "audio/pl022-086-gostar.mp3"}, {"s": "verbos", "pt": "levar", "en": "to take", "a": "audio/pl022-087-levar.mp3"}, {"s": "verbos", "pt": "querer", "en": "to want", "a": "audio/pl022-088-querer.mp3"}, {"s": "verbos", "pt": "procurar", "en": "to look for", "a": "audio/pl022-089-procurar.mp3"}, {"s": "verbos", "pt": "provar / experimentar", "en": "to try", "a": "audio/pl022-090-provar-experimentar.mp3"}, {"s": "verbos", "pt": "servir", "en": "to fit", "a": "audio/pl022-091-servir.mp3"}, {"s": "verbos", "pt": "trocar", "en": "to exchange", "a": "audio/pl022-092-trocar.mp3"}, {"s": "verbos", "pt": "usar", "en": "to use", "a": "audio/pl022-093-usar.mp3"}];
+const SPEAKER = /^(Cliente|Empregado|Empregada):\s*/;
+const sections = [...new Set(cards.map(c => c.s))];
+const DECK = 'pl-022-clothing-vocabulary';
+const keyOf = i => cards[i].s + '|' + cards[i].pt;
+let known = new Set();
+const loadKnown = () => { known = new Set(cards.map((c, i) => i).filter(i => Sync.isKnown(DECK, keyOf(i)))); };
+loadKnown();
+let ended = false, roundSize = 0;
+let section = '', order = [], position = 0, flipped = false, reverse = false, autoplay = true;
+const el = id => document.getElementById(id);
+const main = document.querySelector('main');
+const audio = new Audio(); audio.preload = 'auto';
+
+function split(pt) { const m = pt.match(SPEAKER); return m ? [m[1], pt.slice(m[0].length)] : ['', pt]; }
+function sizeClass(t) { return t.length > 60 ? 'term lg' : t.length > 20 ? 'term md' : 'term'; }
+function inSection() { return cards.map((c, i) => i).filter(i => !section || cards[i].s === section); }
+
+function build() {
+  order = inSection().filter(i => !known.has(i));
+  position = 0; flipped = false; ended = false; roundSize = order.length; render(true);
+}
+function chips() {
+  const all = [['', `All (${cards.filter((c, i) => !known.has(i)).length})`], ...sections.map(s => [s, `${s} (${cards.filter((c, i) => c.s === s && !known.has(i)).length})`])];
+  el('chips').innerHTML = '';
+  for (const [value, label] of all) {
+    const b = document.createElement('button');
+    b.textContent = label; b.setAttribute('aria-pressed', String(value === section));
+    b.onclick = () => { section = value; chips(); build(); };
+    el('chips').appendChild(b);
+  }
+}
+function render(fresh, quiet) {
+  const total = inSection().length, done = inSection().filter(i => known.has(i)).length;
+  el('bar').style.width = `${total ? (done / total) * 100 : 0}%`;
+  main.classList.toggle('all-known', !order.length);
+  main.classList.toggle('round-end', ended && !!order.length);
+  if (!order.length) { el('count').textContent = `Known ${done}/${total}`; return; }
+  if (ended) {
+    el('count').textContent = `Known ${done}/${total}`;
+    el('round-text').textContent = `You went through all ${roundSize} cards. Known: ${done} of ${total}. ${order.length} still to learn.`;
+    return;
+  }
+  const c = cards[order[position]], [who, pt] = split(c.pt);
+  const front = reverse ? c.en : pt, back = reverse ? pt : c.en;
+  el('front').textContent = front; el('front').className = sizeClass(front);
+  el('back').textContent = back; el('back').className = sizeClass(back);
+  el('front-speaker').textContent = who; el('back-speaker').textContent = who;
+  el('front-label').textContent = reverse ? 'English' : 'Português';
+  el('back-label').textContent = reverse ? 'Português' : 'English';
+  el('category').textContent = c.s; el('back-category').textContent = c.s;
+  el('count').innerHTML = `${position + 1} / ${order.length}<br>Known ${done}/${total}`;
+  el('card').classList.toggle('flipped', flipped);
+  el('card').setAttribute('aria-label', `${front}. ${flipped ? 'Answer shown.' : 'Tap to flip.'}`);
+  if (!quiet && autoplay && ((fresh && !reverse) || (!fresh && flipped && reverse))) play();
+}
+function play() {
+  if (!order.length || ended) return;
+  const c = cards[order[position]];
+  audio.pause(); audio.src = c.a; audio.currentTime = 0;
+  audio.play().then(() => { el('audio-status').textContent = ''; })
+    .catch(() => { el('audio-status').textContent = 'Tap 🔊 to hear the Portuguese.'; });
+}
+audio.onerror = () => { el('audio-status').textContent = 'Audio could not be loaded (check your connection).'; };
+function know() {
+  if (!order.length || ended) return;
+  known.add(order[position]); Sync.setKnown(DECK, keyOf(order[position]), true);
+  order.splice(position, 1);
+  if (position >= order.length) { position = Math.max(order.length - 1, 0); ended = order.length > 0; }
+  flipped = false; chips(); render(true);
+}
+function flip() { if (!order.length || ended) return; flipped = !flipped; render(false); }
+function move(by) {
+  if (!order.length || ended) return;
+  const next = position + by;
+  if (next < 0) return;
+  if (next >= order.length) { ended = true; render(true); return; }
+  position = next; flipped = false; render(true);
+}
+function restartRound(shuffled) { ended = false; flipped = false; position = 0; roundSize = order.length; if (shuffled) shuffle(); else render(true); }
+function shuffle() { if (!order.length) return; ended = false; roundSize = order.length; for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; } position = 0; flipped = false; render(true); }
+
+// tap to flip, swipe left = next, swipe right = previous
+let sx = 0, sy = 0, st = 0, swiped = false;
+el('wrap').addEventListener('touchstart', e => { const t = e.touches[0]; sx = t.clientX; sy = t.clientY; st = Date.now(); swiped = false; }, { passive: true });
+el('wrap').addEventListener('touchend', e => {
+  const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && Date.now() - st < 800) {
+    swiped = true;
+    const card = el('card'); card.classList.remove('swipe-l', 'swipe-r'); void card.offsetWidth;
+    card.classList.add(dx < 0 ? 'swipe-l' : 'swipe-r');
+    setTimeout(() => card.classList.remove('swipe-l', 'swipe-r'), 200);
+    move(dx < 0 ? 1 : -1);
+  }
+});
+el('card').addEventListener('click', e => { if (swiped) { swiped = false; return; } if (e.target.closest('[data-say]')) return; flip(); });
+document.querySelectorAll('[data-say]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); play(); }));
+el('flip').addEventListener('click', flip);
+el('prev').addEventListener('click', () => move(-1)); el('next').addEventListener('click', () => move(1));
+el('know').addEventListener('click', know);
+const resetKnown = () => { inSection().forEach(i => { known.delete(i); Sync.setKnown(DECK, keyOf(i), false); }); chips(); build(); };
+el('reset').addEventListener('click', () => { if (confirm('Mark all cards in this section as not known?')) resetKnown(); });
+el('restart').addEventListener('click', resetKnown);
+el('shuffle').addEventListener('click', shuffle);
+el('again').addEventListener('click', () => restartRound(false));
+el('again-shuffle').addEventListener('click', () => restartRound(true));
+el('back-last').addEventListener('click', () => { ended = false; position = order.length - 1; flipped = false; render(true); });
+el('direction').addEventListener('click', () => { reverse = !reverse; el('direction').textContent = reverse ? 'Portuguese → English' : 'English → Portuguese'; flipped = false; render(true); });
+el('autoplay').addEventListener('click', () => { autoplay = !autoplay; el('autoplay').textContent = `Auto-play: ${autoplay ? 'on' : 'off'}`; el('autoplay').setAttribute('aria-pressed', String(autoplay)); });
+// iPad with keyboard
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.target.tagName === 'BUTTON' && e.code === 'Space') return;
+  if (ended && (e.key === 'Enter' || e.code === 'Space')) { e.preventDefault(); restartRound(false); return; }
+  if (e.code === 'Space') { e.preventDefault(); flip(); }
+  else if (e.key === 'ArrowRight') move(1);
+  else if (e.key === 'ArrowLeft') move(-1);
+  else if (e.key.toLowerCase() === 'q') play();
+  else if (e.key.toLowerCase() === 'k') know();
+});
+
+function syncRefresh() {
+  const before = known; loadKnown();
+  const wasEmpty = !order.length, current = order[position];
+  order = order.filter(i => !known.has(i));
+  const back = [...before].filter(i => !known.has(i) && (!section || cards[i].s === section));
+  if (wasEmpty && back.length) { chips(); build(); return; }
+  order.push(...back);
+  const p = order.indexOf(current);
+  if (p >= 0) position = p; else { position = Math.min(position, Math.max(order.length - 1, 0)); flipped = false; }
+  chips(); render(false, true);
+}
+Sync.onChange(syncRefresh);
+Sync.onStatus(t => { el('sync-btn').textContent = '☁︎ ' + t; });
+el('sync-btn').addEventListener('click', () => Sync.openSettings());
+chips(); build();
+</script>
+</body>
+</html>
