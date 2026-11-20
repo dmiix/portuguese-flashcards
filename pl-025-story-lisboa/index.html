@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>025 · Story — visita a Lisboa — Flashcards</title>
+  <style>
+    :root { color-scheme: light; --ink:#172b2a; --muted:#61716e; --green:#0c6958; --mint:#e5f3ee; --paper:#fbfaf6; --line:#dce5df; --gold:#f0c66d; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; padding:28px 18px; display:grid; place-items:center; background:radial-gradient(circle at 15% 10%,#e5f3ee 0,transparent 34%),var(--paper); color:var(--ink); font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    main { width:min(100%,720px); }
+    .top { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:16px; }
+    .eyebrow { margin:0 0 4px; color:var(--green); font-size:.78rem; font-weight:750; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { margin:0; font-size:clamp(1.35rem,4vw,2rem); line-height:1.15; }
+    .count { color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .chips { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 14px; }
+    .chips button { min-height:32px; padding:4px 12px; border-radius:99px; font-size:.82rem; font-weight:650; color:var(--muted); }
+    .chips button[aria-pressed="true"] { border-color:var(--green); background:var(--mint); color:var(--green); }
+    .progress { height:7px; overflow:hidden; margin:0 0 16px; border-radius:99px; background:var(--line); }
+    .progress span { display:block; width:0; height:100%; border-radius:inherit; background:var(--green); transition:width .2s ease; }
+    .card-wrap { perspective:1200px; }
+    .card { position:relative; min-height:340px; transform-style:preserve-3d; transition:transform .45s cubic-bezier(.2,.7,.2,1); cursor:pointer; outline:none; }
+    .card.flipped { transform:rotateY(180deg); }
+    .face { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:52px 34px; border:1px solid var(--line); border-radius:24px; background:white; box-shadow:0 14px 45px #193d3212; backface-visibility:hidden; -webkit-backface-visibility:hidden; text-align:center; }
+    .back { transform:rotateY(180deg); background:var(--mint); }
+    .side-label { position:absolute; top:20px; color:var(--muted); font-size:.75rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+    .speaker { margin:0 0 8px; color:var(--green); font-size:.85rem; font-weight:750; letter-spacing:.08em; text-transform:uppercase; }
+    .speaker:empty { display:none; }
+    .term { margin:0; font-size:clamp(2rem,7vw,3.5rem); font-weight:750; line-height:1.15; overflow-wrap:anywhere; }
+    .term.md { font-size:clamp(1.5rem,4.5vw,2.3rem); line-height:1.25; }
+    .term.lg { font-size:clamp(1.15rem,3.4vw,1.6rem); line-height:1.35; font-weight:700; }
+    .hint { margin:18px 0 0; color:var(--muted); }
+    .category { position:absolute; bottom:20px; padding:5px 11px; border-radius:99px; background:#f3f5f2; color:var(--green); font-size:.8rem; font-weight:700; }
+    .back .category { background:#d4ebe3; }
+    .controls { display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:10px; margin-top:18px; }
+    button { min-height:44px; padding:10px 16px; border:1px solid var(--line); border-radius:12px; background:white; color:var(--ink); font:inherit; font-weight:650; cursor:pointer; }
+    button:hover { border-color:var(--green); }
+    button:focus-visible,.card:focus-visible { outline:3px solid var(--gold); outline-offset:3px; }
+    button.primary { border-color:var(--green); background:var(--green); color:white; }
+    button.known { border-color:var(--green); color:var(--green); }
+    button.known:hover { background:var(--mint); }
+    .done { display:none; min-height:340px; flex-direction:column; justify-content:center; align-items:center; border:1px solid var(--line); border-radius:24px; background:var(--mint); text-align:center; padding:34px; }
+    .done h2 { margin:0 0 8px; font-size:1.8rem; }
+    .done p { margin:0 0 18px; color:var(--muted); }
+    main.all-known .done { display:flex; }
+    main.all-known .card-wrap, main.all-known .controls { display:none; }
+    .round-done { display:none; }
+    main.round-end:not(.all-known) .round-done { display:flex; }
+    main.round-end .card-wrap, main.round-end .controls { display:none; }
+    .done .row { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+    .secondary { display:flex; justify-content:center; flex-wrap:wrap; gap:4px 16px; margin-top:14px; }
+    .secondary button { border:0; background:transparent; color:var(--green); font-size:.92rem; }
+    .help { margin:18px 0 0; color:var(--muted); text-align:center; font-size:.86rem; }
+    .audio-status { min-height:1.35em; margin:9px 0 0; color:var(--muted); text-align:center; font-size:.85rem; }
+    @media(max-width:520px) { body{padding:20px 14px}.card{min-height:320px}.face{padding:48px 18px}.top{align-items:flex-start} }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after{transition:none!important;scroll-behavior:auto!important} }
+  </style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <div><p class="eyebrow">Portuguese Lab · Episode 025</p><h1>025 · Story — visita a Lisboa</h1></div>
+    <div class="count" id="count" aria-live="polite"></div>
+  </header>
+  <div class="chips" id="chips" role="group" aria-label="Sections"></div>
+  <div class="progress" aria-hidden="true"><span id="bar"></span></div>
+  <section class="card-wrap" aria-label="Flashcard">
+    <article class="card" id="card" tabindex="0" role="button" aria-label="Flashcard. Press space to flip.">
+      <div class="face front"><span class="side-label" id="front-label">Português</span><p class="speaker" id="front-speaker"></p><p class="term" id="front"></p><p class="hint">Think of the meaning, then flip</p><span class="category" id="category"></span></div>
+      <div class="face back"><span class="side-label" id="back-label">English</span><p class="speaker" id="back-speaker"></p><p class="term" id="back"></p><p class="hint">Press flip or tap the card to continue</p><span class="category" id="back-category"></span></div>
+    </article>
+  </section>
+  <section class="done" aria-live="polite"><h2>All known! 🎉</h2><p id="done-text">You marked every card in this section as known.</p><button class="primary" id="restart">Study again</button></section>
+  <section class="done round-done" aria-live="polite"><h2>Round complete! 👏</h2><p id="round-text"></p><div class="row"><button class="primary" id="again">Start again</button><button id="again-shuffle">Shuffle &amp; start again</button><button id="back-last">← Back to last card</button></div></section>
+  <nav class="controls" aria-label="Flashcard controls">
+    <button id="prev" aria-label="Previous card">← Previous</button>
+    <button class="primary" id="flip">Flip card</button>
+    <button id="next" aria-label="Next card">Next →</button>
+    <button class="known" id="know">✓ Know it</button>
+  </nav>
+  <div class="secondary">
+    <button id="speak">🔊 Hear Portuguese</button>
+    <button id="shuffle">Shuffle deck</button>
+    <button id="direction">Practice English → Portuguese</button>
+    <button id="autoplay" aria-pressed="true">Auto-play: on</button>
+    <button id="reset">Reset known</button>
+    <button id="sync-btn">☁︎ Sync: off</button>
+  </div>
+  <p class="audio-status" id="audio-status" aria-live="polite"></p>
+  <p class="help">Keyboard: ← / → to move · Space to flip · Q to play · K know it · R to shuffle · Enter to start a new round. Audio: Microsoft Raquel (pt-PT). · <a href="../" style="color:var(--green)">All decks</a> · <a href="mobile.html" style="color:var(--green)">Touch version</a></p>
+</main>
+<script src="../sync.js"></script>
+<script>
+const cards = [{"s": "Planning the trip", "pt": "Ele decidiu ir visitar Lisboa.", "en": "He decided to go and visit Lisbon.", "a": "audio/pl025-001-ele-decidiu-ir-visitar-lisboa.mp3"}, {"s": "Planning the trip", "pt": "Procurou na internet e descobriu um voo que saía da sua cidade na semana seguinte de noite.", "en": "He searched online and found a flight leaving his city the following week, at night.", "a": "audio/pl025-002-procurou-na-internet-e-descobriu-um-voo-que-saia-d.mp3"}, {"s": "Planning the trip", "pt": "Reservou o bilhete só de ida.", "en": "He booked a one-way ticket.", "a": "audio/pl025-003-reservou-o-bilhete-so-de-ida.mp3"}, {"s": "Planning the trip", "pt": "Tinha 20 dias de férias para tirar, logo não era urgente reservar o voo de regresso.", "en": "He had 20 days of holiday to take, so there was no rush to book the return flight.", "a": "audio/pl025-004-tinha-20-dias-de-ferias-para-tirar-logo-nao-era-ur.mp3"}, {"s": "Planning the trip", "pt": "Não conhecia ninguém que já tivesse visitado a cidade, por isso, se não gostasse voltava mais cedo.", "en": "He didn't know anyone who had already visited the city, so if he didn't like it, he would come back earlier.", "a": "audio/pl025-005-nao-conhecia-ninguem-que-ja-tivesse-visitado-a-cid.mp3"}, {"s": "Planning the trip", "pt": "Na mala, que arrumou alguns dias antes de apanhar o avião, guardou roupa quente e fresca, porque também não sabia como é que ia estar o tempo.", "en": "In the suitcase, which he packed a few days before catching the plane, he put warm and light clothes, because he didn't know what the weather was going to be like either.", "a": "audio/pl025-006-na-mala-que-arrumou-alguns-dias-antes-de-apanhar-o.mp3"}, {"s": "Planning the trip", "pt": "Nem um guia comprou!", "en": "He didn't even buy a guidebook!", "a": "audio/pl025-007-nem-um-guia-comprou.mp3"}, {"s": "Planning the trip", "pt": "Ia ser uma viagem à descoberta.", "en": "It was going to be a journey of discovery.", "a": "audio/pl025-008-ia-ser-uma-viagem-a-descoberta.mp3"}, {"s": "Arrival", "pt": "No dia da chegada a Lisboa apanhou um táxi no aeroporto para o centro da cidade.", "en": "On the day he arrived in Lisbon, he took a taxi from the airport to the city centre.", "a": "audio/pl025-009-no-dia-da-chegada-a-lisboa-apanhou-um-taxi-no-aero.mp3"}, {"s": "Arrival", "pt": "O taxista ia a ouvir rádio.", "en": "The taxi driver was listening to the radio.", "a": "audio/pl025-010-o-taxista-ia-a-ouvir-radio.mp3"}, {"s": "Arrival", "pt": "“É fado”, disse ele.", "en": "“It's fado,” he said.", "a": "audio/pl025-011-e-fado-disse-ele.mp3"}, {"s": "Arrival", "pt": "Ele, embora sem compreender uma palavra de português, pareceu-lhe ouvir um tom melancólico na música e limitou-se a sorrir ao taxista pelo espelho retrovisor.", "en": "Although he didn't understand a word of Portuguese, he seemed to hear a melancholy tone in the music and just smiled at the taxi driver in the rear-view mirror.", "a": "audio/pl025-012-ele-embora-sem-compreender-uma-palavra-de-portugue.mp3"}, {"s": "Arrival", "pt": "Tinha escolhido um hotel também pela internet e foi perto dele que o táxi o largou.", "en": "He had also chosen a hotel online, and the taxi dropped him off near it.", "a": "audio/pl025-013-tinha-escolhido-um-hotel-tambem-pela-internet-e-fo.mp3"}, {"s": "Arrival", "pt": "Como o percurso do aeroporto até ao hotel tinha sido feito de noite, não tinha conseguido ver muito da cidade, apenas algumas ruas estreitas iluminadas por candeeiros de rua.", "en": "As the ride from the airport to the hotel had been at night, he hadn't been able to see much of the city, only a few narrow streets lit by street lamps.", "a": "audio/pl025-014-como-o-percurso-do-aeroporto-ate-ao-hotel-tinha-si.mp3"}, {"s": "Walking around the city", "pt": "No dia seguinte decidiu sair a pé e caminhar pela cidade.", "en": "The next day he decided to go out on foot and walk around the city.", "a": "audio/pl025-015-no-dia-seguinte-decidiu-sair-a-pe-e-caminhar-pela-.mp3"}, {"s": "Walking around the city", "pt": "Subiu e desceu as sete colinas de Lisboa.", "en": "He went up and down the seven hills of Lisbon.", "a": "audio/pl025-016-subiu-e-desceu-as-sete-colinas-de-lisboa.mp3"}, {"s": "Walking around the city", "pt": "Sentou-se nos miradouros e apreciou a vista sobre os telhados vermelhos que se estendem até ao rio.", "en": "He sat at the viewpoints and enjoyed the view over the red roofs that stretch down to the river.", "a": "audio/pl025-017-sentou-se-nos-miradouros-e-apreciou-a-vista-sobre-.mp3"}, {"s": "Walking around the city", "pt": "Por várias vezes fechou os olhos e ficou a ouvir o som da vida à sua volta, os moradores dos bairros antigos e o riso das crianças envolvido em línguas estrangeiras espalhadas no ar por turistas.", "en": "Several times he closed his eyes and listened to the sound of life around him: the residents of the old neighbourhoods and the children's laughter, wrapped in foreign languages scattered in the air by tourists.", "a": "audio/pl025-018-por-varias-vezes-fechou-os-olhos-e-ficou-a-ouvir-o.mp3"}, {"s": "Walking around the city", "pt": "Deixou a luz especial que envolve a cidade aquecer-lhe o rosto.", "en": "He let the special light that surrounds the city warm his face.", "a": "audio/pl025-019-deixou-a-luz-especial-que-envolve-a-cidade-aquecer.mp3"}, {"s": "Walking around the city", "pt": "Seguiu com o olhar algumas gaivotas que, por momentos, se afastaram do mar.", "en": "His eyes followed some seagulls that, for a few moments, flew away from the sea.", "a": "audio/pl025-020-seguiu-com-o-olhar-algumas-gaivotas-que-por-moment.mp3"}, {"s": "Walking around the city", "pt": "Percorreu ruas e praças de calçada portuguesa, os seus desenhos contrastados a guiá-lo, como as ondas do mar.", "en": "He walked through streets and squares of Portuguese pavement, its contrasting patterns guiding him like the waves of the sea.", "a": "audio/pl025-021-percorreu-ruas-e-pracas-de-calcada-portuguesa-os-s.mp3"}, {"s": "The café and the castle", "pt": "Entrou num café e, sem dizer uma palavra, foi-lhe colocado à frente um café numa pequena chávena.", "en": "He went into a café and, without saying a word, a coffee in a small cup was placed in front of him.", "a": "audio/pl025-022-entrou-num-cafe-e-sem-dizer-uma-palavra-foi-lhe-co.mp3"}, {"s": "The café and the castle", "pt": "Ui! Quente e forte.", "en": "Ooh! Hot and strong.", "a": "audio/pl025-023-ui-quente-e-forte.mp3"}, {"s": "The café and the castle", "pt": "Definitivamente aquilo que ele estava a precisar.", "en": "Definitely what he needed.", "a": "audio/pl025-024-definitivamente-aquilo-que-ele-estava-a-precisar.mp3"}, {"s": "The café and the castle", "pt": "Agora, com mais energia, podia subir até ao castelo.", "en": "Now, with more energy, he could climb up to the castle.", "a": "audio/pl025-025-agora-com-mais-energia-podia-subir-ate-ao-castelo.mp3"}, {"s": "The café and the castle", "pt": "As ruas que o circundam são como as ruas labirínticas de uma medina árabe.", "en": "The streets around it are like the maze-like streets of an Arab medina.", "a": "audio/pl025-026-as-ruas-que-o-circundam-sao-como-as-ruas-labirinti.mp3"}, {"s": "The café and the castle", "pt": "Por diversas vezes teve de voltar para trás e começar de novo.", "en": "Several times he had to turn back and start again.", "a": "audio/pl025-027-por-diversas-vezes-teve-de-voltar-para-tras-e-come.mp3"}, {"s": "The café and the castle", "pt": "Numa janela, perto de uma fonte, uma velha emoldurada por dois gatos ao sol esticou o seu dedo enrugado.", "en": "At a window near a fountain, an old woman, framed by two cats in the sun, stretched out her wrinkled finger.", "a": "audio/pl025-028-numa-janela-perto-de-uma-fonte-uma-velha-emoldurad.mp3"}, {"s": "The café and the castle", "pt": "Apontou-lhe para umas escadas escondidas que o levariam de novo ao caminho certo.", "en": "She pointed him to some hidden steps that would take him back onto the right path.", "a": "audio/pl025-029-apontou-lhe-para-umas-escadas-escondidas-que-o-lev.mp3"}, {"s": "The bookshop", "pt": "Já sob o céu vermelho do entardecer entrou numa livraria com o ano de 1732 afixado na entrada.", "en": "Under the red evening sky, he went into a bookshop with the year 1732 displayed at the entrance.", "a": "audio/pl025-030-ja-sob-o-ceu-vermelho-do-entardecer-entrou-numa-li.mp3"}, {"s": "The bookshop", "pt": "Foi de sala em sala, como numa gruta, e parou na zona de guias sobre a cidade.", "en": "He went from room to room, as if in a cave, and stopped at the section of guidebooks about the city.", "a": "audio/pl025-031-foi-de-sala-em-sala-como-numa-gruta-e-parou-na-zon.mp3"}, {"s": "The bookshop", "pt": "Quase que pegava num, mas uma voz deteve-o.", "en": "He almost picked one up, but a voice stopped him.", "a": "audio/pl025-032-quase-que-pegava-num-mas-uma-voz-deteve-o.mp3"}, {"s": "The bookshop", "pt": "Rapariga: Precisa de ajuda?", "en": "Girl: Do you need help?", "a": "audio/pl025-033-rapariga-precisa-de-ajuda.mp3"}, {"s": "The bookshop", "pt": "Uma rapariga morena no fundo da sala empilhava livros numa mesa.", "en": "A dark-haired girl at the back of the room was stacking books on a table.", "a": "audio/pl025-034-uma-rapariga-morena-no-fundo-da-sala-empilhava-liv.mp3"}, {"s": "The bookshop", "pt": "Ele gesticulou que não compreendia.", "en": "He gestured that he didn't understand.", "a": "audio/pl025-035-ele-gesticulou-que-nao-compreendia.mp3"}, {"s": "The bookshop", "pt": "Ela aproximou-se e estendeu-lhe um livro.", "en": "She came closer and held out a book to him.", "a": "audio/pl025-036-ela-aproximou-se-e-estendeu-lhe-um-livro.mp3"}, {"s": "The bookshop", "pt": "Rapariga: Leve este. É um bom guia da cidade.", "en": "Girl: Take this one. It's a good guide to the city.", "a": "audio/pl025-037-rapariga-leve-este-e-um-bom-guia-da-cidade.mp3"}, {"s": "The bookshop", "pt": "Rapariga: Quanto tempo vai ficar em Lisboa?", "en": "Girl: How long are you going to stay in Lisbon?", "a": "audio/pl025-038-rapariga-quanto-tempo-vai-ficar-em-lisboa.mp3"}, {"s": "The bookshop", "pt": "Ele: Não tenho data de regresso.", "en": "He: I don't have a return date.", "a": "audio/pl025-039-ele-nao-tenho-data-de-regresso.mp3"}, {"s": "The bookshop", "pt": "Rapariga: Então, este livro aqui é melhor. É para aprender português.", "en": "Girl: Then this book here is better. It's for learning Portuguese.", "a": "audio/pl025-040-rapariga-entao-este-livro-aqui-e-melhor-e-para-apr.mp3"}, {"s": "The bookshop", "pt": "Ele sorriu-lhe e levou o livro.", "en": "He smiled at her and took the book.", "a": "audio/pl025-041-ele-sorriu-lhe-e-levou-o-livro.mp3"}, {"s": "The bookshop", "pt": "No dia seguinte voltou à livraria mais antiga do mundo.", "en": "The next day he went back to the oldest bookshop in the world.", "a": "audio/pl025-042-no-dia-seguinte-voltou-a-livraria-mais-antiga-do-m.mp3"}, {"s": "The bookshop", "pt": "Ainda não reservou a viagem de volta.", "en": "He still hasn't booked the trip back.", "a": "audio/pl025-043-ainda-nao-reservou-a-viagem-de-volta.mp3"}, {"s": "The bookshop", "pt": "Já passaram dois meses.", "en": "Two months have already passed.", "a": "audio/pl025-044-ja-passaram-dois-meses.mp3"}, {"s": "Key vocabulary", "pt": "o bilhete só de ida", "en": "one-way ticket", "a": "audio/pl025-045-o-bilhete-so-de-ida.mp3"}, {"s": "Key vocabulary", "pt": "o voo de regresso", "en": "return flight", "a": "audio/pl025-046-o-voo-de-regresso.mp3"}, {"s": "Key vocabulary", "pt": "arrumar a mala", "en": "to pack the suitcase", "a": "audio/pl025-047-arrumar-a-mala.mp3"}, {"s": "Key vocabulary", "pt": "apanhar o avião", "en": "to catch the plane", "a": "audio/pl025-048-apanhar-o-aviao.mp3"}, {"s": "Key vocabulary", "pt": "o taxista", "en": "taxi driver", "a": "audio/pl025-049-o-taxista.mp3"}, {"s": "Key vocabulary", "pt": "o espelho retrovisor", "en": "rear-view mirror", "a": "audio/pl025-050-o-espelho-retrovisor.mp3"}, {"s": "Key vocabulary", "pt": "limitar-se a (sorrir)", "en": "to just (smile), to do no more than", "a": "audio/pl025-051-limitar-se-a.mp3"}, {"s": "Key vocabulary", "pt": "largar", "en": "to drop off (a passenger), to let go", "a": "audio/pl025-052-largar.mp3"}, {"s": "Key vocabulary", "pt": "o percurso", "en": "route, journey", "a": "audio/pl025-053-o-percurso.mp3"}, {"s": "Key vocabulary", "pt": "estreito (-a)", "en": "narrow", "a": "audio/pl025-054-estreito.mp3"}, {"s": "Key vocabulary", "pt": "o candeeiro de rua", "en": "street lamp", "a": "audio/pl025-055-o-candeeiro-de-rua.mp3"}, {"s": "Key vocabulary", "pt": "a colina", "en": "hill", "a": "audio/pl025-056-a-colina.mp3"}, {"s": "Key vocabulary", "pt": "o miradouro", "en": "viewpoint", "a": "audio/pl025-057-o-miradouro.mp3"}, {"s": "Key vocabulary", "pt": "o telhado", "en": "roof", "a": "audio/pl025-058-o-telhado.mp3"}, {"s": "Key vocabulary", "pt": "o morador", "en": "resident", "a": "audio/pl025-059-o-morador.mp3"}, {"s": "Key vocabulary", "pt": "o bairro", "en": "neighbourhood", "a": "audio/pl025-060-o-bairro.mp3"}, {"s": "Key vocabulary", "pt": "o riso", "en": "laughter", "a": "audio/pl025-061-o-riso.mp3"}, {"s": "Key vocabulary", "pt": "espalhado (-a)", "en": "scattered, spread", "a": "audio/pl025-062-espalhado.mp3"}, {"s": "Key vocabulary", "pt": "o rosto", "en": "face", "a": "audio/pl025-063-o-rosto.mp3"}, {"s": "Key vocabulary", "pt": "a gaivota", "en": "seagull", "a": "audio/pl025-064-a-gaivota.mp3"}, {"s": "Key vocabulary", "pt": "a calçada portuguesa", "en": "Portuguese mosaic pavement", "a": "audio/pl025-065-a-calcada-portuguesa.mp3"}, {"s": "Key vocabulary", "pt": "a onda", "en": "wave", "a": "audio/pl025-066-a-onda.mp3"}, {"s": "Key vocabulary", "pt": "a chávena", "en": "cup (pt-PT)", "a": "audio/pl025-067-a-chavena.mp3"}, {"s": "Key vocabulary", "pt": "circundar", "en": "to surround", "a": "audio/pl025-068-circundar.mp3"}, {"s": "Key vocabulary", "pt": "labiríntico (-a)", "en": "maze-like", "a": "audio/pl025-069-labirintico.mp3"}, {"s": "Key vocabulary", "pt": "voltar para trás", "en": "to turn back", "a": "audio/pl025-070-voltar-para-tras.mp3"}, {"s": "Key vocabulary", "pt": "a fonte", "en": "fountain", "a": "audio/pl025-071-a-fonte.mp3"}, {"s": "Key vocabulary", "pt": "emoldurado (-a)", "en": "framed", "a": "audio/pl025-072-emoldurado.mp3"}, {"s": "Key vocabulary", "pt": "enrugado (-a)", "en": "wrinkled", "a": "audio/pl025-073-enrugado.mp3"}, {"s": "Key vocabulary", "pt": "apontar", "en": "to point", "a": "audio/pl025-074-apontar.mp3"}, {"s": "Key vocabulary", "pt": "as escadas", "en": "stairs, steps", "a": "audio/pl025-075-as-escadas.mp3"}, {"s": "Key vocabulary", "pt": "o entardecer", "en": "dusk, early evening", "a": "audio/pl025-076-o-entardecer.mp3"}, {"s": "Key vocabulary", "pt": "a livraria", "en": "bookshop", "a": "audio/pl025-077-a-livraria.mp3"}, {"s": "Key vocabulary", "pt": "afixado (-a)", "en": "displayed, posted", "a": "audio/pl025-078-afixado.mp3"}, {"s": "Key vocabulary", "pt": "a gruta", "en": "cave", "a": "audio/pl025-079-a-gruta.mp3"}, {"s": "Key vocabulary", "pt": "deter", "en": "to stop, to hold back", "a": "audio/pl025-080-deter.mp3"}, {"s": "Key vocabulary", "pt": "a rapariga", "en": "girl (pt-PT)", "a": "audio/pl025-081-a-rapariga.mp3"}, {"s": "Key vocabulary", "pt": "moreno (-a)", "en": "dark-haired, tanned", "a": "audio/pl025-082-moreno.mp3"}, {"s": "Key vocabulary", "pt": "empilhar", "en": "to stack", "a": "audio/pl025-083-empilhar.mp3"}, {"s": "Key vocabulary", "pt": "gesticular", "en": "to gesture", "a": "audio/pl025-084-gesticular.mp3"}, {"s": "Key vocabulary", "pt": "estender", "en": "to hold out, to stretch out", "a": "audio/pl025-085-estender.mp3"}];
+const SPEAKER = /^(Cliente|Empregado|Empregada):\s*/;
+const sections = [...new Set(cards.map(c => c.s))];
+const DECK = 'pl-025-story-lisboa';
+const keyOf = i => cards[i].s + '|' + cards[i].pt;
+let known = new Set();
+const loadKnown = () => { known = new Set(cards.map((c, i) => i).filter(i => Sync.isKnown(DECK, keyOf(i)))); };
+loadKnown();
+let ended = false, roundSize = 0;
+let section = '', order = [], position = 0, flipped = false, reverse = false, autoplay = true;
+const el = id => document.getElementById(id);
+const audio = new Audio();
+
+function split(pt) { const m = pt.match(SPEAKER); return m ? [m[1], pt.slice(m[0].length)] : ['', pt]; }
+function sizeClass(t) { return t.length > 60 ? 'term lg' : t.length > 24 ? 'term md' : 'term'; }
+
+function build() {
+  order = cards.map((c, i) => i).filter(i => (!section || cards[i].s === section) && !known.has(i));
+  position = 0; flipped = false; ended = false; roundSize = order.length; render(true);
+}
+function chips() {
+  const all = [['', `All (${cards.filter((c, i) => !known.has(i)).length})`], ...sections.map(s => [s, `${s} (${cards.filter((c, i) => c.s === s && !known.has(i)).length})`])];
+  el('chips').innerHTML = '';
+  for (const [value, label] of all) {
+    const b = document.createElement('button');
+    b.textContent = label; b.setAttribute('aria-pressed', String(value === section));
+    b.onclick = () => { section = value; chips(); build(); };
+    el('chips').appendChild(b);
+  }
+}
+function inSection() { return cards.map((c, i) => i).filter(i => !section || cards[i].s === section); }
+function render(fresh, quiet) {
+  const total = inSection().length, done = inSection().filter(i => known.has(i)).length;
+  el('bar').style.width = `${total ? (done / total) * 100 : 0}%`;
+  document.querySelector('main').classList.toggle('all-known', !order.length);
+  if (!order.length) { el('count').textContent = `Known ${done} of ${total}`; return; }
+  document.querySelector('main').classList.toggle('round-end', ended);
+  if (ended) {
+    el('count').textContent = `Round done · Known ${done}/${total}`;
+    el('round-text').textContent = `You went through all ${roundSize} cards in this round. Known: ${done} of ${total}. ${order.length} still to learn.`;
+    return;
+  }
+  const c = cards[order[position]], [who, pt] = split(c.pt);
+  const front = reverse ? c.en : pt, back = reverse ? pt : c.en;
+  el('front').textContent = front; el('front').className = sizeClass(front);
+  el('back').textContent = back; el('back').className = sizeClass(back);
+  el('front-speaker').textContent = who; el('back-speaker').textContent = who;
+  el('front-label').textContent = reverse ? 'English' : 'Português';
+  el('back-label').textContent = reverse ? 'Português' : 'English';
+  el('category').textContent = c.s; el('back-category').textContent = c.s;
+  el('count').textContent = `Card ${position + 1} of ${order.length} · Known ${done}/${total}`;
+  el('card').classList.toggle('flipped', flipped);
+  el('card').setAttribute('aria-label', `${front}. ${flipped ? 'Answer shown.' : 'Press space to flip.'}`);
+  // Auto-play when the Portuguese side becomes visible
+  if (!quiet && autoplay && ((fresh && !reverse) || (!fresh && flipped && reverse))) play();
+}
+function play() {
+  if (!order.length || ended) return;
+  const c = cards[order[position]];
+  audio.pause(); audio.src = c.a; audio.currentTime = 0;
+  audio.play().then(() => { el('audio-status').textContent = ''; })
+    .catch(() => { el('audio-status').textContent = 'Click “Hear Portuguese” to play audio.'; });
+}
+audio.onerror = () => { el('audio-status').textContent = 'Audio file not found — keep this page next to its “audio” folder.'; };
+function know() {
+  if (!order.length) return;
+  if (ended) return;
+  known.add(order[position]); Sync.setKnown(DECK, keyOf(order[position]), true);
+  order.splice(position, 1);
+  if (position >= order.length) { position = Math.max(order.length - 1, 0); ended = order.length > 0; }
+  flipped = false; chips(); render(true);
+}
+function flip() { if (!order.length || ended) return; flipped = !flipped; render(false); }
+function move(by) {
+  if (!order.length || ended) return;
+  const next = position + by;
+  if (next < 0) return;                                   // already at the first card
+  if (next >= order.length) { ended = true; render(true); return; }   // end of round: show notice
+  position = next; flipped = false; render(true);
+}
+function restartRound(shuffled) { ended = false; flipped = false; position = 0; roundSize = order.length; if (shuffled) shuffle(); else render(true); }
+function shuffle() { if (!order.length) return; ended = false; roundSize = order.length; for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; } position = 0; flipped = false; render(true); }
+
+el('card').addEventListener('click', flip); el('flip').addEventListener('click', flip);
+el('prev').addEventListener('click', () => move(-1)); el('next').addEventListener('click', () => move(1));
+el('speak').addEventListener('click', play);
+el('know').addEventListener('click', know);
+const resetKnown = () => { inSection().forEach(i => { known.delete(i); Sync.setKnown(DECK, keyOf(i), false); }); chips(); build(); };
+el('reset').addEventListener('click', resetKnown); el('restart').addEventListener('click', resetKnown);
+el('shuffle').addEventListener('click', shuffle);
+el('again').addEventListener('click', () => restartRound(false));
+el('again-shuffle').addEventListener('click', () => restartRound(true));
+el('back-last').addEventListener('click', () => { ended = false; position = order.length - 1; flipped = false; render(true); });
+el('direction').addEventListener('click', () => { reverse = !reverse; el('direction').textContent = reverse ? 'Practice Portuguese → English' : 'Practice English → Portuguese'; flipped = false; render(true); });
+el('autoplay').addEventListener('click', () => { autoplay = !autoplay; el('autoplay').textContent = `Auto-play: ${autoplay ? 'on' : 'off'}`; el('autoplay').setAttribute('aria-pressed', String(autoplay)); });
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'BUTTON' && e.code === 'Space') return;
+  if (ended && (e.key === 'Enter' || e.code === 'Space')) { e.preventDefault(); restartRound(false); return; }
+  if (ended && e.key === 'ArrowLeft') { el('back-last').click(); return; }
+  if (e.code === 'Space') { e.preventDefault(); flip(); }
+  else if (e.key === 'ArrowRight') move(1);
+  else if (e.key === 'ArrowLeft') move(-1);
+  else if (e.key.toLowerCase() === 'r') shuffle();
+  else if (e.key.toLowerCase() === 'q') play();
+  else if (e.key.toLowerCase() === 'k') know();
+});
+// Progress changed on another device: drop newly known cards, add back un-known ones
+function syncRefresh() {
+  const before = known; loadKnown();
+  const wasEmpty = !order.length;
+  const current = order[position];
+  order = order.filter(i => !known.has(i));
+  const back = [...before].filter(i => !known.has(i) && (!section || cards[i].s === section));
+  if (wasEmpty && back.length) { chips(); build(); return; }
+  order.push(...back);
+  const p = order.indexOf(current);
+  if (p >= 0) position = p; else { position = Math.min(position, Math.max(order.length - 1, 0)); flipped = false; }
+  chips(); render(false, true);
+}
+Sync.onChange(syncRefresh);
+Sync.onStatus(t => { el('sync-btn').textContent = '☁︎ ' + t; });
+el('sync-btn').addEventListener('click', () => Sync.openSettings());
+chips(); build();
+</script>
+</body>
+</html>
