@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>026 · Story — three short biographies — Flashcards</title>
+  <style>
+    :root { color-scheme: light; --ink:#172b2a; --muted:#61716e; --green:#0c6958; --mint:#e5f3ee; --paper:#fbfaf6; --line:#dce5df; --gold:#f0c66d; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; padding:28px 18px; display:grid; place-items:center; background:radial-gradient(circle at 15% 10%,#e5f3ee 0,transparent 34%),var(--paper); color:var(--ink); font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    main { width:min(100%,720px); }
+    .top { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:16px; }
+    .eyebrow { margin:0 0 4px; color:var(--green); font-size:.78rem; font-weight:750; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { margin:0; font-size:clamp(1.35rem,4vw,2rem); line-height:1.15; }
+    .count { color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .chips { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 14px; }
+    .chips button { min-height:32px; padding:4px 12px; border-radius:99px; font-size:.82rem; font-weight:650; color:var(--muted); }
+    .chips button[aria-pressed="true"] { border-color:var(--green); background:var(--mint); color:var(--green); }
+    .progress { height:7px; overflow:hidden; margin:0 0 16px; border-radius:99px; background:var(--line); }
+    .progress span { display:block; width:0; height:100%; border-radius:inherit; background:var(--green); transition:width .2s ease; }
+    .card-wrap { perspective:1200px; }
+    .card { position:relative; min-height:340px; transform-style:preserve-3d; transition:transform .45s cubic-bezier(.2,.7,.2,1); cursor:pointer; outline:none; }
+    .card.flipped { transform:rotateY(180deg); }
+    .face { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:52px 34px; border:1px solid var(--line); border-radius:24px; background:white; box-shadow:0 14px 45px #193d3212; backface-visibility:hidden; -webkit-backface-visibility:hidden; text-align:center; }
+    .back { transform:rotateY(180deg); background:var(--mint); }
+    .side-label { position:absolute; top:20px; color:var(--muted); font-size:.75rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+    .speaker { margin:0 0 8px; color:var(--green); font-size:.85rem; font-weight:750; letter-spacing:.08em; text-transform:uppercase; }
+    .speaker:empty { display:none; }
+    .term { margin:0; font-size:clamp(2rem,7vw,3.5rem); font-weight:750; line-height:1.15; overflow-wrap:anywhere; }
+    .term.md { font-size:clamp(1.5rem,4.5vw,2.3rem); line-height:1.25; }
+    .term.lg { font-size:clamp(1.15rem,3.4vw,1.6rem); line-height:1.35; font-weight:700; }
+    .hint { margin:18px 0 0; color:var(--muted); }
+    .category { position:absolute; bottom:20px; padding:5px 11px; border-radius:99px; background:#f3f5f2; color:var(--green); font-size:.8rem; font-weight:700; }
+    .back .category { background:#d4ebe3; }
+    .controls { display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:10px; margin-top:18px; }
+    button { min-height:44px; padding:10px 16px; border:1px solid var(--line); border-radius:12px; background:white; color:var(--ink); font:inherit; font-weight:650; cursor:pointer; }
+    button:hover { border-color:var(--green); }
+    button:focus-visible,.card:focus-visible { outline:3px solid var(--gold); outline-offset:3px; }
+    button.primary { border-color:var(--green); background:var(--green); color:white; }
+    button.known { border-color:var(--green); color:var(--green); }
+    button.known:hover { background:var(--mint); }
+    .done { display:none; min-height:340px; flex-direction:column; justify-content:center; align-items:center; border:1px solid var(--line); border-radius:24px; background:var(--mint); text-align:center; padding:34px; }
+    .done h2 { margin:0 0 8px; font-size:1.8rem; }
+    .done p { margin:0 0 18px; color:var(--muted); }
+    main.all-known .done { display:flex; }
+    main.all-known .card-wrap, main.all-known .controls { display:none; }
+    .round-done { display:none; }
+    main.round-end:not(.all-known) .round-done { display:flex; }
+    main.round-end .card-wrap, main.round-end .controls { display:none; }
+    .done .row { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+    .secondary { display:flex; justify-content:center; flex-wrap:wrap; gap:4px 16px; margin-top:14px; }
+    .secondary button { border:0; background:transparent; color:var(--green); font-size:.92rem; }
+    .help { margin:18px 0 0; color:var(--muted); text-align:center; font-size:.86rem; }
+    .audio-status { min-height:1.35em; margin:9px 0 0; color:var(--muted); text-align:center; font-size:.85rem; }
+    @media(max-width:520px) { body{padding:20px 14px}.card{min-height:320px}.face{padding:48px 18px}.top{align-items:flex-start} }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after{transition:none!important;scroll-behavior:auto!important} }
+  </style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <div><p class="eyebrow">Portuguese Lab · Episode 026</p><h1>026 · Story — three short biographies</h1></div>
+    <div class="count" id="count" aria-live="polite"></div>
+  </header>
+  <div class="chips" id="chips" role="group" aria-label="Sections"></div>
+  <div class="progress" aria-hidden="true"><span id="bar"></span></div>
+  <section class="card-wrap" aria-label="Flashcard">
+    <article class="card" id="card" tabindex="0" role="button" aria-label="Flashcard. Press space to flip.">
+      <div class="face front"><span class="side-label" id="front-label">Português</span><p class="speaker" id="front-speaker"></p><p class="term" id="front"></p><p class="hint">Think of the meaning, then flip</p><span class="category" id="category"></span></div>
+      <div class="face back"><span class="side-label" id="back-label">English</span><p class="speaker" id="back-speaker"></p><p class="term" id="back"></p><p class="hint">Press flip or tap the card to continue</p><span class="category" id="back-category"></span></div>
+    </article>
+  </section>
+  <section class="done" aria-live="polite"><h2>All known! 🎉</h2><p id="done-text">You marked every card in this section as known.</p><button class="primary" id="restart">Study again</button></section>
+  <section class="done round-done" aria-live="polite"><h2>Round complete! 👏</h2><p id="round-text"></p><div class="row"><button class="primary" id="again">Start again</button><button id="again-shuffle">Shuffle &amp; start again</button><button id="back-last">← Back to last card</button></div></section>
+  <nav class="controls" aria-label="Flashcard controls">
+    <button id="prev" aria-label="Previous card">← Previous</button>
+    <button class="primary" id="flip">Flip card</button>
+    <button id="next" aria-label="Next card">Next →</button>
+    <button class="known" id="know">✓ Know it</button>
+  </nav>
+  <div class="secondary">
+    <button id="speak">🔊 Hear Portuguese</button>
+    <button id="shuffle">Shuffle deck</button>
+    <button id="direction">Practice English → Portuguese</button>
+    <button id="autoplay" aria-pressed="true">Auto-play: on</button>
+    <button id="reset">Reset known</button>
+    <button id="sync-btn">☁︎ Sync: off</button>
+  </div>
+  <p class="audio-status" id="audio-status" aria-live="polite"></p>
+  <p class="help">Keyboard: ← / → to move · Space to flip · Q to play · K know it · R to shuffle · Enter to start a new round. Audio: Microsoft Raquel (pt-PT). · <a href="../" style="color:var(--green)">All decks</a> · <a href="mobile.html" style="color:var(--green)">Touch version</a></p>
+</main>
+<script src="../sync.js"></script>
+<script>
+const cards = [{"s": "Text 1: eu", "pt": "Eu chamo-me Joana Fernandes.", "en": "My name is Joana Fernandes.", "a": "audio/pl026-001-eu-chamo-me-joana-fernandes.mp3"}, {"s": "Text 1: eu", "pt": "Joana é o meu primeiro nome.", "en": "Joana is my first name.", "a": "audio/pl026-002-joana-e-o-meu-primeiro-nome.mp3"}, {"s": "Text 1: eu", "pt": "Fernandes é o meu sobrenome.", "en": "Fernandes is my family name.", "a": "audio/pl026-003-fernandes-e-o-meu-sobrenome.mp3"}, {"s": "Text 1: eu", "pt": "Tenho vinte e nove anos e sou casada.", "en": "I am 29 and I am married.", "a": "audio/pl026-004-tenho-vinte-e-nove-anos-e-sou-casada.mp3"}, {"s": "Text 1: eu", "pt": "Tenho um filho com dois anos.", "en": "I have a 2-year-old son.", "a": "audio/pl026-005-tenho-um-filho-com-dois-anos.mp3"}, {"s": "Text 1: eu", "pt": "Moro no Porto perto do centro da cidade.", "en": "I live in Porto near the city centre.", "a": "audio/pl026-006-moro-no-porto-perto-do-centro-da-cidade.mp3"}, {"s": "Text 1: eu", "pt": "Eu trabalho como engenheira numa empresa de arquitetura.", "en": "I work as an engineer in an architecture firm.", "a": "audio/pl026-007-eu-trabalho-como-engenheira-numa-empresa-de-arquit.mp3"}, {"s": "Text 1: eu", "pt": "Eu sou uma pessoa muito ocupada, mas nos meus tempos-livres gosto de passear na praia com a minha família.", "en": "I am a very busy person, but in my free time I like to walk on the beach with my family.", "a": "audio/pl026-008-eu-sou-uma-pessoa-muito-ocupada-mas-nos-meus-tempo.mp3"}, {"s": "Text 1: eu", "pt": "Também pratico natação com o meu filho à quarta-feira.", "en": "I also go swimming with my son on Wednesdays.", "a": "audio/pl026-009-tambem-pratico-natacao-com-o-meu-filho-a-quarta-fe.mp3"}, {"s": "Text 1: eu", "pt": "No fim-de-semana, quando tenho tempo, vou ao cinema com o meu marido.", "en": "At the weekend, when I have time, I go to the cinema with my husband.", "a": "audio/pl026-010-no-fim-de-semana-quando-tenho-tempo-vou-ao-cinema-.mp3"}, {"s": "Text 1: eu", "pt": "Durante a semana saio de casa às nove da manhã e vou de carro para o trabalho.", "en": "During the week I leave home at 9 in the morning and drive to work.", "a": "audio/pl026-011-durante-a-semana-saio-de-casa-as-nove-da-manha-e-v.mp3"}, {"s": "Text 1: eu", "pt": "Ouço as notícias no carro e chego ao escritório às nove e meia.", "en": "I listen to the news in the car and I arrive at the office at 9:30.", "a": "audio/pl026-012-ouco-as-noticias-no-carro-e-chego-ao-escritorio-as.mp3"}, {"s": "Text 1: eu", "pt": "À hora de almoço, almoço fora com os meus colegas.", "en": "At lunchtime, I eat out with my colleagues.", "a": "audio/pl026-013-a-hora-de-almoco-almoco-fora-com-os-meus-colegas.mp3"}, {"s": "Text 1: eu", "pt": "Da parte da tarde trabalho até às seis e meia.", "en": "In the afternoon I work until 6:30.", "a": "audio/pl026-014-da-parte-da-tarde-trabalho-ate-as-seis-e-meia.mp3"}, {"s": "Text 1: eu", "pt": "Vou buscar o meu filho ao infantário e vou para casa.", "en": "I pick up my son from nursery school and I go home.", "a": "audio/pl026-015-vou-buscar-o-meu-filho-ao-infantario-e-vou-para-ca.mp3"}, {"s": "Text 1: eu", "pt": "Depois de jantar ainda leio um pouco e finalmente adormeço.", "en": "After dinner I still read a little and finally I fall asleep.", "a": "audio/pl026-016-depois-de-jantar-ainda-leio-um-pouco-e-finalmente-.mp3"}, {"s": "Text 2: tu", "pt": "Tu chamas-te Rui.", "en": "Your name is Rui.", "a": "audio/pl026-017-tu-chamas-te-rui.mp3"}, {"s": "Text 2: tu", "pt": "O teu sobrenome é Rodrigues.", "en": "Your family name is Rodrigues.", "a": "audio/pl026-018-o-teu-sobrenome-e-rodrigues.mp3"}, {"s": "Text 2: tu", "pt": "Tens treze anos.", "en": "You are 13 years old.", "a": "audio/pl026-019-tens-treze-anos.mp3"}, {"s": "Text 2: tu", "pt": "Tu tens uma família muito grande, tens três irmãos e quatro primos.", "en": "You have a very big family, you have 3 brothers (or siblings) and 4 cousins.", "a": "audio/pl026-020-tu-tens-uma-familia-muito-grande-tens-tres-irmaos-.mp3"}, {"s": "Text 2: tu", "pt": "Tu vives com os teus pais e os teus irmãos em Évora.", "en": "You live with your parents and your brothers in Évora.", "a": "audio/pl026-021-tu-vives-com-os-teus-pais-e-os-teus-irmaos-em-evor.mp3"}, {"s": "Text 2: tu", "pt": "Ainda andas na escola e gostas de estudar matemática.", "en": "You are still at school and you like studying maths.", "a": "audio/pl026-022-ainda-andas-na-escola-e-gostas-de-estudar-matemati.mp3"}, {"s": "Text 2: tu", "pt": "Quando chegas da escola fazes os trabalhos de casa e depois jogas à bola no jardim da tua casa.", "en": "When you get home from school you do your homework and then you play football in the garden of your house.", "a": "audio/pl026-023-quando-chegas-da-escola-fazes-os-trabalhos-de-casa.mp3"}, {"s": "Text 2: tu", "pt": "Tens um cão e também brincas muito com ele.", "en": "You have a dog and you also play with him a lot.", "a": "audio/pl026-024-tens-um-cao-e-tambem-brincas-muito-com-ele.mp3"}, {"s": "Text 2: tu", "pt": "Quando o tempo está bom, durante o fim-de-semana, vais à piscina com os teus amigos e comes um gelado ou dois.", "en": "When the weather is good, at the weekend, you go to the pool with your friends and you eat an ice cream or two.", "a": "audio/pl026-025-quando-o-tempo-esta-bom-durante-o-fim-de-semana-va.mp3"}, {"s": "Text 2: tu", "pt": "Almoças sempre com a família toda e fazes grandes caminhadas no campo com eles.", "en": "You always have lunch with the whole family and you go on long walks in the countryside with them.", "a": "audio/pl026-026-almocas-sempre-com-a-familia-toda-e-fazes-grandes-.mp3"}, {"s": "Text 2: tu", "pt": "Quando vês um cavalo tiras sempre uma fotografia.", "en": "When you see a horse you always take a photo.", "a": "audio/pl026-027-quando-ves-um-cavalo-tiras-sempre-uma-fotografia.mp3"}, {"s": "Text 3: ele", "pt": "O Alexandre é um homem de negócios.", "en": "Alexandre is a businessman.", "a": "audio/pl026-028-o-alexandre-e-um-homem-de-negocios.mp3"}, {"s": "Text 3: ele", "pt": "Vive sozinho num apartamento em Lisboa e tem trinta e dois anos.", "en": "He lives alone in an apartment in Lisbon and he is 32 years old.", "a": "audio/pl026-029-vive-sozinho-num-apartamento-em-lisboa-e-tem-trint.mp3"}, {"s": "Text 3: ele", "pt": "Ele tem uma empresa de informática e viaja muitas vezes para o estrangeiro.", "en": "He has an IT company and he often travels abroad.", "a": "audio/pl026-030-ele-tem-uma-empresa-de-informatica-e-viaja-muitas-.mp3"}, {"s": "Text 3: ele", "pt": "Todos os meses apanha o avião no aeroporto de Lisboa e voa até Madrid e Barcelona.", "en": "Every month he catches a plane at Lisbon airport and flies to Madrid and Barcelona.", "a": "audio/pl026-031-todos-os-meses-apanha-o-aviao-no-aeroporto-de-lisb.mp3"}, {"s": "Text 3: ele", "pt": "Ele veste fatos caros e tem sempre um carro novo.", "en": "He wears expensive suits and always has a new car.", "a": "audio/pl026-032-ele-veste-fatos-caros-e-tem-sempre-um-carro-novo.mp3"}, {"s": "Text 3: ele", "pt": "Usa muitas vezes óculos escuros, mesmo quando não está sol.", "en": "He often wears sunglasses, even when it is not sunny.", "a": "audio/pl026-033-usa-muitas-vezes-oculos-escuros-mesmo-quando-nao-e.mp3"}, {"s": "Text 3: ele", "pt": "O Alexandre não tem tempo livre, mas gosta de praticar desporto uma vez por semana no ginásio perto de sua casa.", "en": "Alexandre doesn't have any free time, but he likes to do sport once a week at the gym near his home.", "a": "audio/pl026-034-o-alexandre-nao-tem-tempo-livre-mas-gosta-de-prati.mp3"}, {"s": "Text 3: ele", "pt": "Também aprende Espanhol pela internet e fala frequentemente com amigos espanhóis.", "en": "He also learns Spanish online and often talks with Spanish friends.", "a": "audio/pl026-035-tambem-aprende-espanhol-pela-internet-e-fala-frequ.mp3"}, {"s": "Text 3: ele", "pt": "Quando está em Lisboa visita os pais ao fim-de-semana e ouve as novidades do resto da família.", "en": "When he is in Lisbon he visits his parents at the weekend and hears the news from the rest of the family.", "a": "audio/pl026-036-quando-esta-em-lisboa-visita-os-pais-ao-fim-de-sem.mp3"}];
+const SPEAKER = /^(Cliente|Empregado|Empregada):\s*/;
+const sections = [...new Set(cards.map(c => c.s))];
+const DECK = 'pl-026-story-biographies';
+const keyOf = i => cards[i].s + '|' + cards[i].pt;
+let known = new Set();
+const loadKnown = () => { known = new Set(cards.map((c, i) => i).filter(i => Sync.isKnown(DECK, keyOf(i)))); };
+loadKnown();
+let ended = false, roundSize = 0;
+let section = '', order = [], position = 0, flipped = false, reverse = false, autoplay = true;
+const el = id => document.getElementById(id);
+const audio = new Audio();
+
+function split(pt) { const m = pt.match(SPEAKER); return m ? [m[1], pt.slice(m[0].length)] : ['', pt]; }
+function sizeClass(t) { return t.length > 60 ? 'term lg' : t.length > 24 ? 'term md' : 'term'; }
+
+function build() {
+  order = cards.map((c, i) => i).filter(i => (!section || cards[i].s === section) && !known.has(i));
+  position = 0; flipped = false; ended = false; roundSize = order.length; render(true);
+}
+function chips() {
+  const all = [['', `All (${cards.filter((c, i) => !known.has(i)).length})`], ...sections.map(s => [s, `${s} (${cards.filter((c, i) => c.s === s && !known.has(i)).length})`])];
+  el('chips').innerHTML = '';
+  for (const [value, label] of all) {
+    const b = document.createElement('button');
+    b.textContent = label; b.setAttribute('aria-pressed', String(value === section));
+    b.onclick = () => { section = value; chips(); build(); };
+    el('chips').appendChild(b);
+  }
+}
+function inSection() { return cards.map((c, i) => i).filter(i => !section || cards[i].s === section); }
+function render(fresh, quiet) {
+  const total = inSection().length, done = inSection().filter(i => known.has(i)).length;
+  el('bar').style.width = `${total ? (done / total) * 100 : 0}%`;
+  document.querySelector('main').classList.toggle('all-known', !order.length);
+  if (!order.length) { el('count').textContent = `Known ${done} of ${total}`; return; }
+  document.querySelector('main').classList.toggle('round-end', ended);
+  if (ended) {
+    el('count').textContent = `Round done · Known ${done}/${total}`;
+    el('round-text').textContent = `You went through all ${roundSize} cards in this round. Known: ${done} of ${total}. ${order.length} still to learn.`;
+    return;
+  }
+  const c = cards[order[position]], [who, pt] = split(c.pt);
+  const front = reverse ? c.en : pt, back = reverse ? pt : c.en;
+  el('front').textContent = front; el('front').className = sizeClass(front);
+  el('back').textContent = back; el('back').className = sizeClass(back);
+  el('front-speaker').textContent = who; el('back-speaker').textContent = who;
+  el('front-label').textContent = reverse ? 'English' : 'Português';
+  el('back-label').textContent = reverse ? 'Português' : 'English';
+  el('category').textContent = c.s; el('back-category').textContent = c.s;
+  el('count').textContent = `Card ${position + 1} of ${order.length} · Known ${done}/${total}`;
+  el('card').classList.toggle('flipped', flipped);
+  el('card').setAttribute('aria-label', `${front}. ${flipped ? 'Answer shown.' : 'Press space to flip.'}`);
+  // Auto-play when the Portuguese side becomes visible
+  if (!quiet && autoplay && ((fresh && !reverse) || (!fresh && flipped && reverse))) play();
+}
+function play() {
+  if (!order.length || ended) return;
+  const c = cards[order[position]];
+  audio.pause(); audio.src = c.a; audio.currentTime = 0;
+  audio.play().then(() => { el('audio-status').textContent = ''; })
+    .catch(() => { el('audio-status').textContent = 'Click “Hear Portuguese” to play audio.'; });
+}
+audio.onerror = () => { el('audio-status').textContent = 'Audio file not found — keep this page next to its “audio” folder.'; };
+function know() {
+  if (!order.length) return;
+  if (ended) return;
+  known.add(order[position]); Sync.setKnown(DECK, keyOf(order[position]), true);
+  order.splice(position, 1);
+  if (position >= order.length) { position = Math.max(order.length - 1, 0); ended = order.length > 0; }
+  flipped = false; chips(); render(true);
+}
+function flip() { if (!order.length || ended) return; flipped = !flipped; render(false); }
+function move(by) {
+  if (!order.length || ended) return;
+  const next = position + by;
+  if (next < 0) return;                                   // already at the first card
+  if (next >= order.length) { ended = true; render(true); return; }   // end of round: show notice
+  position = next; flipped = false; render(true);
+}
+function restartRound(shuffled) { ended = false; flipped = false; position = 0; roundSize = order.length; if (shuffled) shuffle(); else render(true); }
+function shuffle() { if (!order.length) return; ended = false; roundSize = order.length; for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; } position = 0; flipped = false; render(true); }
+
+el('card').addEventListener('click', flip); el('flip').addEventListener('click', flip);
+el('prev').addEventListener('click', () => move(-1)); el('next').addEventListener('click', () => move(1));
+el('speak').addEventListener('click', play);
+el('know').addEventListener('click', know);
+const resetKnown = () => { inSection().forEach(i => { known.delete(i); Sync.setKnown(DECK, keyOf(i), false); }); chips(); build(); };
+el('reset').addEventListener('click', resetKnown); el('restart').addEventListener('click', resetKnown);
+el('shuffle').addEventListener('click', shuffle);
+el('again').addEventListener('click', () => restartRound(false));
+el('again-shuffle').addEventListener('click', () => restartRound(true));
+el('back-last').addEventListener('click', () => { ended = false; position = order.length - 1; flipped = false; render(true); });
+el('direction').addEventListener('click', () => { reverse = !reverse; el('direction').textContent = reverse ? 'Practice Portuguese → English' : 'Practice English → Portuguese'; flipped = false; render(true); });
+el('autoplay').addEventListener('click', () => { autoplay = !autoplay; el('autoplay').textContent = `Auto-play: ${autoplay ? 'on' : 'off'}`; el('autoplay').setAttribute('aria-pressed', String(autoplay)); });
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'BUTTON' && e.code === 'Space') return;
+  if (ended && (e.key === 'Enter' || e.code === 'Space')) { e.preventDefault(); restartRound(false); return; }
+  if (ended && e.key === 'ArrowLeft') { el('back-last').click(); return; }
+  if (e.code === 'Space') { e.preventDefault(); flip(); }
+  else if (e.key === 'ArrowRight') move(1);
+  else if (e.key === 'ArrowLeft') move(-1);
+  else if (e.key.toLowerCase() === 'r') shuffle();
+  else if (e.key.toLowerCase() === 'q') play();
+  else if (e.key.toLowerCase() === 'k') know();
+});
+// Progress changed on another device: drop newly known cards, add back un-known ones
+function syncRefresh() {
+  const before = known; loadKnown();
+  const wasEmpty = !order.length;
+  const current = order[position];
+  order = order.filter(i => !known.has(i));
+  const back = [...before].filter(i => !known.has(i) && (!section || cards[i].s === section));
+  if (wasEmpty && back.length) { chips(); build(); return; }
+  order.push(...back);
+  const p = order.indexOf(current);
+  if (p >= 0) position = p; else { position = Math.min(position, Math.max(order.length - 1, 0)); flipped = false; }
+  chips(); render(false, true);
+}
+Sync.onChange(syncRefresh);
+Sync.onStatus(t => { el('sync-btn').textContent = '☁︎ ' + t; });
+el('sync-btn').addEventListener('click', () => Sync.openSettings());
+chips(); build();
+</script>
+</body>
+</html>
