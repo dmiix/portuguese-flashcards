@@ -16,6 +16,9 @@ BUILD = SITE / "_build"
 decks = json.loads((SITE / "decks.json").read_text(encoding="utf-8"))
 templates = {name: (BUILD / f"{tpl}.html").read_text(encoding="utf-8")
              for name, tpl in (("index.html", "desktop"), ("mobile.html", "mobile"))}
+# word popup (select text -> listen + translate); single source shared with the local episode decks
+WORDPOP = (SITE.parent / "77-Portuguese Lab" / "_tools" / "wordpop.html").read_text(encoding="utf-8")
+templates = {k: v.replace("<!--WORDPOP-->", WORDPOP) for k, v in templates.items()}
 
 rows = []
 for d in decks:

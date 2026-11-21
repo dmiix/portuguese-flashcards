@@ -261,5 +261,130 @@ Sync.onStatus(t => { el('sync-btn').textContent = '☁︎ ' + t; });
 el('sync-btn').addEventListener('click', () => Sync.openSettings());
 chips(); build();
 </script>
+<!-- wordpop: select a word/phrase on a card -> popup with pronunciation (pt-PT voice) and translation.
+     Injected before </body> of every flashcard page (episode template, site templates). Needs global `cards`. -->
+<style>
+  #wordpop { position:fixed; z-index:50; display:none; max-width:min(340px,calc(100vw - 24px)); padding:10px 12px; border:1px solid #dce5df; border-radius:14px; background:#fff; color:#172b2a; box-shadow:0 14px 40px #193d3229; font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif; text-align:left; user-select:none; -webkit-user-select:none; }
+  #wordpop .wp-row { display:flex; align-items:center; gap:10px; }
+  #wordpop .wp-say { flex:none; min-height:38px; min-width:38px; padding:0 10px; border:1px solid #0c6958; border-radius:10px; background:#0c6958; color:#fff; font-size:1.05rem; cursor:pointer; }
+  #wordpop .wp-text { font-weight:700; overflow-wrap:anywhere; }
+  #wordpop .wp-tr { margin-top:6px; color:#172b2a; overflow-wrap:anywhere; }
+  #wordpop .wp-src { margin-top:4px; color:#61716e; font-size:.78rem; }
+  #wordpop .wp-src a { color:#0c6958; }
+</style>
+<div id="wordpop" role="dialog" aria-label="Selected word">
+  <div class="wp-row"><button class="wp-say" type="button" aria-label="Listen">🔊</button><span class="wp-text"></span></div>
+  <div class="wp-tr"></div>
+  <div class="wp-src"></div>
+</div>
+<script>
+(function () {
+  const pop = document.getElementById('wordpop');
+  const $ = s => pop.querySelector(s);
+  const cache = new Map();
+  let current = null, timer = null, reqId = 0;
+
+  // ---- glossary from this deck's cards ----
+  const norm = s => String(s).toLowerCase().replace(/^[^:]{1,20}:\s+/, '').replace(/\([^)]*\)/g, ' ')
+    .replace(/[“”"«»¿?¡!.,;:…—–]/g, ' ').replace(/\s+/g, ' ').trim();
+  const stripArt = s => s.replace(/^(o|a|os|as|um|uma|uns|umas|the|a|an|to)\s+/, '');
+  const ptMap = new Map(), enMap = new Map();
+  for (const c of (typeof cards !== 'undefined' ? cards : [])) {
+    const p = norm(c.pt), e = norm(c.en);
+    for (const k of new Set([p, stripArt(p)])) if (k && !ptMap.has(k)) ptMap.set(k, c.en.replace(/\s*\([^)]*\)\s*$/, ''));
+    for (const k of new Set([e, stripArt(e)])) if (k && !enMap.has(k)) enMap.set(k, c.pt.replace(/^[^:]{1,20}:\s+/, ''));
+  }
+
+  // ---- speech (built-in pt-PT voice, e.g. Joana on Apple devices) ----
+  let voice = null;
+  function pickVoice() {
+    const vs = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
+    voice = vs.find(v => /pt[-_]PT/i.test(v.lang) && /joana|catarina|raquel|fernanda/i.test(v.name))
+         || vs.find(v => /pt[-_]PT/i.test(v.lang)) || vs.find(v => /^pt/i.test(v.lang)) || null;
+  }
+  if (window.speechSynthesis) { pickVoice(); speechSynthesis.addEventListener && speechSynthesis.addEventListener('voiceschanged', pickVoice); }
+  function speak(text) {
+    if (!window.speechSynthesis || !text) return;
+    try { if (typeof audio !== 'undefined') audio.pause(); } catch (e) {}
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'pt-PT'; if (voice) u.voice = voice; u.rate = 0.9;
+    speechSynthesis.speak(u);
+  }
+
+  // ---- translation: deck glossary first, then MyMemory ----
+  async function translate(text, from) {
+    const k = norm(text), map = from === 'pt' ? ptMap : enMap;
+    const hit = map.get(k) || map.get(stripArt(k));
+    if (hit) return { t: hit, src: 'this deck' };
+    const key = from + '|' + k;
+    if (cache.has(key)) return cache.get(key);
+    const pair = from === 'pt' ? 'pt-PT|en-GB' : 'en-GB|pt-PT';
+    const r = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=' + pair);
+    const j = await r.json();
+    const t = j && j.responseData && j.responseData.translatedText;
+    if (!t || j.responseStatus != 200) throw new Error('no result');
+    const res = { t, src: 'machine translation' };
+    cache.set(key, res);
+    return res;
+  }
+
+  function hide() { pop.style.display = 'none'; current = null; }
+  function place(rect) {
+    pop.style.display = 'block';
+    const w = pop.offsetWidth, h = pop.offsetHeight, m = 12;
+    const touch = matchMedia('(hover: none)').matches;   // iOS puts its own menu above the selection
+    let top = touch ? rect.bottom + 14 : rect.top - h - 10;
+    if (top < m) top = rect.bottom + 10;
+    if (top + h > innerHeight - m) top = Math.max(m, rect.top - h - 10);
+    let left = rect.left + rect.width / 2 - w / 2;
+    left = Math.min(Math.max(m, left), innerWidth - w - m);
+    pop.style.top = top + 'px'; pop.style.left = left + 'px';
+  }
+
+  async function show() {
+    const sel = window.getSelection();
+    const text = String(sel || '').replace(/\s+/g, ' ').trim();
+    if (!text || !sel.rangeCount || text.length > 120) { hide(); return; }
+    const range = sel.getRangeAt(0);
+    let node = range.commonAncestorContainer; if (node.nodeType !== 1) node = node.parentElement;
+    const term = node && node.closest('.card .term, .card .speaker');
+    if (!term) { hide(); return; }
+    const label = term.closest('.face').querySelector('.side-label');
+    const from = /portugu/i.test(label ? label.textContent : '') ? 'pt' : 'en';
+    if (current && current.text === text) { place(range.getBoundingClientRect()); return; }
+    const id = ++reqId;
+    current = { text, from, pt: from === 'pt' ? text : '' };
+    $('.wp-text').textContent = text;
+    $('.wp-tr').textContent = '…';
+    const gt = `https://translate.google.com/?sl=${from === 'pt' ? 'pt' : 'en'}&tl=${from === 'pt' ? 'en' : 'pt'}&text=${encodeURIComponent(text)}`;
+    $('.wp-src').innerHTML = '';
+    $('.wp-say').style.display = from === 'pt' ? '' : 'none';
+    place(range.getBoundingClientRect());
+    try {
+      const r = await translate(text, from);
+      if (id !== reqId) return;
+      $('.wp-tr').textContent = r.t;
+      if (from === 'en') { current.pt = r.t; $('.wp-say').style.display = ''; }
+      $('.wp-src').innerHTML = `${r.src} · <a href="${gt}" target="_blank" rel="noopener">Google Translate ↗</a>`;
+    } catch (e) {
+      if (id !== reqId) return;
+      $('.wp-tr').textContent = navigator.onLine === false ? 'Offline: no translation' : 'No translation found';
+      $('.wp-src').innerHTML = `<a href="${gt}" target="_blank" rel="noopener">Google Translate ↗</a>`;
+    }
+    place(range.getBoundingClientRect());
+  }
+
+  // keep the selection when pressing the popup's buttons
+  pop.addEventListener('mousedown', e => { if (!e.target.closest('a')) e.preventDefault(); });
+  pop.addEventListener('click', e => e.stopPropagation());
+  $('.wp-say').addEventListener('click', () => current && speak(current.pt));
+  document.addEventListener('selectionchange', () => { clearTimeout(timer); timer = setTimeout(show, 280); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { hide(); window.getSelection().removeAllRanges(); } });
+  addEventListener('scroll', () => { if (current) show(); }, { passive: true });
+  addEventListener('resize', () => { if (current) show(); });
+})();
+</script>
+
 </body>
 </html>
