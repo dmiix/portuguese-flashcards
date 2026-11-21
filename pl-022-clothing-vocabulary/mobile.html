@@ -38,7 +38,7 @@
     .face { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:52px 20px; border:1px solid var(--line); border-radius:24px; background:white; box-shadow:0 14px 45px #193d3212; backface-visibility:hidden; -webkit-backface-visibility:hidden; text-align:center; user-select:none; -webkit-user-select:none; }
     .back { transform:rotateY(180deg); background:var(--mint); }
     .side-label { position:absolute; top:18px; left:20px; color:var(--muted); font-size:.72rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
-    .say { position:absolute; bottom:10px; right:10px; display:grid; place-items:center; width:48px; height:48px; min-height:0; padding:0; border:1px solid var(--line); border-radius:99px; background:white; color:var(--green); box-shadow:0 2px 8px #193d3210; transition:background .15s, border-color .15s; }
+    .say { position:absolute; bottom:10px; right:10px; display:grid; place-items:center; width:48px; height:48px; min-height:0; padding:0; border:1px solid var(--line); border-radius:99px; background:white; color:var(--green); box-shadow:0 2px 8px #193d3210; transition:transform .12s ease, background .15s, border-color .15s; }
     .back .say { background:#f4fbf8; border-color:#c9e3d9; }
     .say:active, .say.playing { background:var(--mint); border-color:var(--green); }
     .say.playing .w1 { animation:wave 1s ease-in-out infinite; } .say.playing .w2 { animation:wave 1s ease-in-out .2s infinite; }
@@ -52,7 +52,10 @@
     .category { position:absolute; bottom:18px; padding:5px 11px; border-radius:99px; background:#f3f5f2; color:var(--green); font-size:.8rem; font-weight:700; }
     .back .category { background:#d4ebe3; }
     button { min-height:48px; padding:10px 14px; border:1px solid var(--line); border-radius:14px; background:white; color:var(--ink); font:inherit; font-weight:650; cursor:pointer; touch-action:manipulation; }
-    button:active { transform:scale(.97); }
+    button { transition:transform .12s ease, background-color .15s, border-color .15s; }
+    button:active, .more summary:active { transform:scale(.96); }
+    button:not(.primary):not(.say):active { background:#f3f7f4; }
+    button.primary:active { background:#0a5a4b; }
     button:focus-visible,.card:focus-visible { outline:3px solid var(--gold); outline-offset:3px; }
     button.primary { border-color:var(--green); background:var(--green); color:white; }
     button.known { border-color:var(--green); color:var(--green); }
@@ -67,7 +70,7 @@
     main.all-known .card-wrap, main.all-known .controls, main.round-end .card-wrap, main.round-end .controls { display:none; }
     main.round-end:not(.all-known) .done.round { display:flex; }
     .more { margin-top:6px; }
-    .more summary { list-style:none; text-align:center; color:var(--green); font-weight:650; padding:10px; cursor:pointer; }
+    .more summary { transition:transform .12s ease; list-style:none; text-align:center; color:var(--green); font-weight:650; padding:10px; cursor:pointer; }
     .more summary::-webkit-details-marker { display:none; }
     .more .grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
     .more .grid button { font-size:.92rem; }
@@ -331,6 +334,8 @@ const resetKnown = () => { inSection().forEach(i => { known.delete(i); Sync.setK
 el('reset').addEventListener('click', () => { if (confirm('Mark all cards in this section as not known?')) resetKnown(); });
 // iOS can swallow the first tap on a screen that just appeared (it treats it as ending a scroll/gesture),
 // so the end-of-round buttons act on touchend directly; click still works for mouse/keyboard.
+// iOS Safari only shows :active (the press animation) when a touch listener exists — enable it for every button
+document.addEventListener('touchstart', () => {}, { passive: true });
 function onTap(b, fn) {
   let tx = 0, ty = 0, ok = false, last = 0;
   b.addEventListener('touchstart', e => { const t = e.touches[0]; tx = t.clientX; ty = t.clientY; ok = true; }, { passive: true });
