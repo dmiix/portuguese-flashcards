@@ -391,12 +391,14 @@ chips(); build();
     $('.wp-text').textContent = text;
     $('.wp-tr').textContent = '…';
     const gt = `https://translate.google.com/?sl=${from === 'pt' ? 'pt' : 'en'}&tl=${from === 'pt' ? 'en' : 'pt'}&text=${encodeURIComponent(text)}`;
+    // DeepL: the ?r= value makes every click a real page load (a hash-only change would not refresh the reused tab)
+    const dl = `https://www.deepl.com/en/translator?r=${Date.now()}#${from === 'pt' ? 'pt/en-gb' : 'en/pt-pt'}/${encodeURIComponent(text)}`;
     const cam = `https://dictionary.cambridge.org/search/direct/?datasetsearch=${from === 'pt' ? 'portuguese-english' : 'english-portuguese'}&q=${encodeURIComponent(text)}`;
-    // links open in one named tab per site (pfc-google / pfc-cambridge / pfc-reverso), reused on later clicks
+    // links open in one named tab per site (pfc-google / pfc-deepl / pfc-cambridge / pfc-reverso), reused on later clicks
   // Reverso conjugation (Russian UI) for a single Portuguese word; clitics like chamo-me -> chamo
     const verb = w => { const t = toks(w || ''); return t.length === 1 ? t[0].replace(/-(me|te|se|nos|vos|lhe|lhes|o|a|os|as|lo|la|los|las|no|na|nos|nas)$/, '') : ''; };
     const rv = w => w ? `<br><a href="https://glagol.reverso.net/${encodeURIComponent('спряжение-португальский-глагол-' + w)}.html" target="pfc-reverso">Reverso conjugation ↗</a>` : '';
-    let links = `<a href="${gt}" target="pfc-google">Google Translate ↗</a><br><a href="${cam}" target="pfc-cambridge">Cambridge Dictionary ↗</a>`;
+    let links = `<a href="${gt}" target="pfc-google">Google Translate ↗</a> · <a href="${dl}" target="pfc-deepl">DeepL ↗</a><br><a href="${cam}" target="pfc-cambridge">Cambridge Dictionary ↗</a>`;
     const base = links;
     links = base + rv(from === 'pt' ? verb(text) : '');
     $('.wp-src').innerHTML = '';
