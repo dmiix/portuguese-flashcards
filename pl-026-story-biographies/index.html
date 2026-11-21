@@ -260,21 +260,54 @@ chips(); build();
     for (const k of new Set([e, stripArt(e)])) if (k && !enMap.has(k)) enMap.set(k, c.pt.replace(/^[^:]{1,20}:\s+/, ''));
   }
 
-  // ---- speech (built-in pt-PT voice, e.g. Joana on Apple devices) ----
-  let voice = null;
+  // ---- speech: Microsoft Raquel recordings ----
+  // 1) text equals a whole card -> that card's recording
+  // 2) single word -> audio/w/<hex>.mp3, pre-recorded by _tools/make_words.py (same file-name rule)
+  // 3) phrase -> Raquel voice if the browser has it (Microsoft Edge), else the word recordings one after another
+  // anything missing -> the device's own pt-PT voice
+  const cardAudio = new Map();
+  for (const c of (typeof cards !== 'undefined' ? cards : [])) { const k = norm(c.pt); if (k && c.a && !cardAudio.has(k)) cardAudio.set(k, c.a); }
+  const toks = t => t.normalize('NFC').toLowerCase().replace(/\([^)]*\)/g, ' ').match(/\p{L}+(?:-\p{L}+)*/gu) || [];
+  const wordFile = w => 'audio/w/' + [...new TextEncoder().encode(w.normalize('NFC').toLowerCase())].map(b => b.toString(16).padStart(2, '0')).join('') + '.mp3';
+  const wa = new Audio();
+  let voice = null, raquel = null, queue = [];
   function pickVoice() {
     const vs = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
-    voice = vs.find(v => /pt[-_]PT/i.test(v.lang) && /joana|catarina|raquel|fernanda/i.test(v.name))
+    raquel = vs.find(v => /raquel/i.test(v.name) && /^pt/i.test(v.lang)) || null;
+    voice = raquel || vs.find(v => /pt[-_]PT/i.test(v.lang) && /joana|catarina/i.test(v.name))
          || vs.find(v => /pt[-_]PT/i.test(v.lang)) || vs.find(v => /^pt/i.test(v.lang)) || null;
   }
   if (window.speechSynthesis) { pickVoice(); speechSynthesis.addEventListener && speechSynthesis.addEventListener('voiceschanged', pickVoice); }
-  function speak(text) {
+  function systemSay(text) {
+    queue = []; wa.pause();
     if (!window.speechSynthesis || !text) return;
-    try { if (typeof audio !== 'undefined') audio.pause(); } catch (e) {}
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'pt-PT'; if (voice) u.voice = voice; u.rate = 0.9;
     speechSynthesis.speak(u);
+  }
+  function playList(files, text) {
+    queue = files.slice();
+    const next = () => {
+      if (!queue.length) return;
+      wa.src = queue.shift();
+      wa.play().catch(() => systemSay(text));
+    };
+    wa.onended = () => setTimeout(next, 60);
+    wa.onerror = () => systemSay(text);
+    next();
+  }
+  function speak(text) {
+    if (!text) return;
+    try { if (typeof audio !== 'undefined') audio.pause(); } catch (e) {}
+    if (window.speechSynthesis) speechSynthesis.cancel();
+    wa.pause();
+    const card = cardAudio.get(norm(text));
+    if (card) return playList([card], text);
+    const ws = toks(text);
+    if (ws.length === 1) return playList([wordFile(ws[0])], text);
+    if (raquel || ws.length === 0 || ws.length > 8) return systemSay(text);
+    playList(ws.map(wordFile), text);
   }
 
   // ---- translation: deck glossary first, then MyMemory ----

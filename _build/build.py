@@ -37,6 +37,15 @@ for d in decks:
     for name in wanted:
         if not (out / "audio" / name).exists():
             shutil.copy2(src / "audio" / name, out / "audio" / name)
+    # word recordings for the select-a-word popup (made by _tools/make_words.py)
+    if (src / "audio" / "w").is_dir():
+        (out / "audio" / "w").mkdir(exist_ok=True)
+        srcw = {f.name for f in (src / "audio" / "w").glob("*.mp3")}
+        for f in (out / "audio" / "w").glob("*.mp3"):
+            if f.name not in srcw: f.unlink()
+        for name in srcw:
+            if not (out / "audio" / "w" / name).exists():
+                shutil.copy2(src / "audio" / "w" / name, out / "audio" / "w" / name)
     for fname, tpl in templates.items():
         text = (tpl.replace("__TITLE__", html.escape(d["title"]))
                    .replace("__HEADING__", html.escape(d["title"]))
