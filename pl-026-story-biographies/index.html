@@ -357,10 +357,11 @@ chips(); build();
     $('.wp-tr').textContent = '…';
     const gt = `https://translate.google.com/?sl=${from === 'pt' ? 'pt' : 'en'}&tl=${from === 'pt' ? 'en' : 'pt'}&text=${encodeURIComponent(text)}`;
     const cam = `https://dictionary.cambridge.org/search/direct/?datasetsearch=${from === 'pt' ? 'portuguese-english' : 'english-portuguese'}&q=${encodeURIComponent(text)}`;
-    // Reverso conjugation (Russian UI) for a single Portuguese word; clitics like chamo-me -> chamo
+    // links open in one named tab per site (pfc-google / pfc-cambridge / pfc-reverso), reused on later clicks
+  // Reverso conjugation (Russian UI) for a single Portuguese word; clitics like chamo-me -> chamo
     const verb = w => { const t = toks(w || ''); return t.length === 1 ? t[0].replace(/-(me|te|se|nos|vos|lhe|lhes|o|a|os|as|lo|la|los|las|no|na|nos|nas)$/, '') : ''; };
-    const rv = w => w ? `<br><a href="https://glagol.reverso.net/${encodeURIComponent('спряжение-португальский-глагол-' + w)}.html" target="_blank" rel="noopener">Reverso conjugation ↗</a>` : '';
-    let links = `<a href="${gt}" target="_blank" rel="noopener">Google Translate ↗</a><br><a href="${cam}" target="_blank" rel="noopener">Cambridge Dictionary ↗</a>`;
+    const rv = w => w ? `<br><a href="https://glagol.reverso.net/${encodeURIComponent('спряжение-португальский-глагол-' + w)}.html" target="pfc-reverso">Reverso conjugation ↗</a>` : '';
+    let links = `<a href="${gt}" target="pfc-google">Google Translate ↗</a><br><a href="${cam}" target="pfc-cambridge">Cambridge Dictionary ↗</a>`;
     const base = links;
     links = base + rv(from === 'pt' ? verb(text) : '');
     $('.wp-src').innerHTML = '';
