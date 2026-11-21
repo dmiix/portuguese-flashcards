@@ -171,9 +171,15 @@ function render(fresh, quiet) {
   el('count').innerHTML = `${position + 1} / ${order.length}<br>Known ${done}/${total}`;
   el('card').classList.toggle('flipped', flipped);
   el('card').setAttribute('aria-label', `${front}. ${flipped ? 'Answer shown.' : 'Tap to flip.'}`);
-  if (!quiet && autoplay && ((fresh && !reverse) || (!fresh && flipped && reverse))) play();
+  if (!quiet && autoplay && ((fresh && !reverse) || (!fresh && flipped && reverse))) queuePlay();
+}
+let playTimer = 0;
+function queuePlay() {   // wait until the card has settled so audio loading doesn't stutter the animation
+  clearTimeout(playTimer);
+  if (anim) { audio.pause(); playTimer = setTimeout(play, IN + 40); } else play();
 }
 function play() {
+  clearTimeout(playTimer);
   if (!order.length || ended) return;
   const c = cards[order[position]];
   audio.pause(); audio.src = c.a; audio.currentTime = 0;
@@ -203,52 +209,72 @@ function restartRound(shuffled) { ended = false; flipped = false; position = 0; 
 function shuffle() { if (!order.length) return; ended = false; roundSize = order.length; for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; } position = 0; flipped = false; render(true); }
 
 // tap to flip; drag the card: left = next, right = previous (card follows the finger, flies off, next one slides in)
-// Animations can always be interrupted: a new touch or button press finishes the running one instantly.
+// A touch during an animation freezes the card where it is and the finger takes over from there (no jumps).
 const card = el('card'), wrap = el('wrap');
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-const EASE_OUT = 'cubic-bezier(.2,.8,.2,1)', EASE_IN = 'cubic-bezier(.4,0,1,1)', SPRING = 'cubic-bezier(.3,1.4,.5,1)';
-let sx = 0, sy = 0, lx = 0, lt = 0, vx = 0, dx = 0, swiped = false, gesture = '', raf = 0;
-let anim = null;   // { timer, finish } of the running animation
+const EASE_OUT = 'cubic-bezier(.2,.8,.2,1)', EASE_IN = 'cubic-bezier(.4,0,1,1)', SPRING = 'cubic-bezier(.3,1.3,.5,1)';
+const OUT = 170, IN = 260;
+let sx = 0, sy = 0, lx = 0, lt = 0, vx = 0, dx = 0, base = 0, swiped = false, gesture = '', raf = 0;
+let anim = null;   // { timers, phase: 'out' | 'in' | 'settle', by, dir }
 const canMove = by => order.length && !ended && position + by >= 0;
 // opacity goes on the wrapper, never on the 3D card (opacity on a preserve-3d element breaks the flip faces in Safari)
 function pose(x, rot, ms, ease) {
-  const tr = ms ? `translate ${ms}ms ${ease}, rotate ${ms}ms ${ease}` : 'none';
-  card.style.transition = tr;
-  card.style.translate = x ? `${x}px 0` : '0px 0';
+  card.style.transition = ms ? `translate ${ms}ms ${ease}, rotate ${ms}ms ${ease}` : 'none';
+  card.style.translate = `${x}px 0`;
   card.style.rotate = `${rot}deg`;
 }
 function fade(o, ms) { wrap.style.transition = ms ? `opacity ${ms}ms ease` : 'none'; wrap.style.opacity = o; }
 function clearPose() { card.style.transition = card.style.translate = card.style.rotate = ''; wrap.style.transition = wrap.style.opacity = ''; }
-function run(steps) {   // steps: [[ms, fn], ...] run one after another; finish() jumps to the end
-  finishAnim();
-  let i = 0;
-  const next = () => { if (i >= steps.length) { anim = null; return; } const [ms, fn] = steps[i++]; fn(); anim.timer = setTimeout(next, ms); };
-  anim = { timer: 0, finish() { clearTimeout(anim.timer); while (i < steps.length) steps[i++][1](); anim = null; clearPose(); } };
-  next();
+function start(phase, extra) { anim = { timers: [], phase, ...extra }; return anim; }
+function later(a, ms, fn) { a.timers.push(setTimeout(() => { if (anim === a) fn(); }, ms)); }
+function done(a) { if (anim === a) { anim = null; clearPose(); } }
+// stop whatever is animating, keep the card where it visually is; returns its x
+function freeze() {
+  const a = anim; if (!a) return 0;
+  anim = null; a.timers.forEach(clearTimeout);
+  if (a.phase === 'out') {          // old card still flying away: switch now, new card waits just off-centre
+    const x = -a.dir * wrap.clientWidth * 0.3;
+    pose(x, -a.dir * 3, 0); move(a.by); fade(1, 150);
+    return x;
+  }
+  const cs = getComputedStyle(card), x = parseFloat(cs.translate) || 0, r = parseFloat(cs.rotate) || 0;
+  pose(x, r, 0); fade(1, 150);
+  return x;
 }
-function finishAnim() { if (anim) anim.finish(); }
-function animMove(by, fromDrag) {
-  if (!fromDrag) finishAnim();
-  if (!canMove(by)) { if (by < 0 && order.length && !ended) bounce(); else clearPose(); return; }
+function settle() {
+  if (reduced()) { clearPose(); return; }
+  const a = start('settle');
+  pose(0, 0, 320, SPRING); fade(1, 150);
+  later(a, 340, () => done(a));
+}
+function animMove(by) {
+  freeze();
+  if (!canMove(by)) { if (by < 0 && order.length && !ended) bounce(); else settle(); return; }
   if (reduced()) { clearPose(); move(by); return; }
   const dir = by > 0 ? -1 : 1, w = wrap.clientWidth;
-  const out = 200, inn = 280;
-  run([
-    [out, () => { pose(dir * (w + 140), dir * 14, out, EASE_IN); fade(0.5, out); }],
-    [20,  () => { pose(-dir * w * 0.35, -dir * 4, 0); fade(0, 0); move(by); void card.offsetWidth; }],
-    [inn, () => { pose(0, 0, inn, EASE_OUT); fade(1, inn * 0.7); }],
-    [0,   clearPose],
-  ]);
+  const a = start('out', { by, dir });
+  pose(dir * (w + 140), dir * 14, OUT, EASE_IN); fade(0.6, OUT);
+  later(a, OUT, () => {
+    a.phase = 'in';
+    pose(-dir * w * 0.3, -dir * 3, 0); fade(0, 0);
+    move(by);
+    void card.offsetWidth;          // commit the start position before animating in
+    pose(0, 0, IN, EASE_OUT); fade(1, IN * 0.6);
+    later(a, IN + 20, () => done(a));
+  });
 }
 function bounce() {
   if (reduced()) return;
-  run([[110, () => pose(26, 1.5, 110, 'ease-out')], [340, () => pose(0, 0, 340, SPRING)], [0, clearPose]]);
+  const a = start('settle');
+  pose(26, 1.5, 110, 'ease-out');
+  later(a, 110, () => { pose(0, 0, 320, SPRING); later(a, 340, () => done(a)); });
 }
 wrap.addEventListener('touchstart', e => {
   gesture = '';
   if (e.touches.length > 1 || e.target.closest('[data-say]')) return;
-  finishAnim();   // never ignore a swipe because the previous one is still animating
-  const t = e.touches[0]; sx = lx = t.clientX; sy = t.clientY; lt = e.timeStamp; vx = dx = 0; swiped = false; gesture = 'pending';
+  swiped = !!anim;                  // a touch that interrupts an animation never flips the card
+  base = freeze();
+  const t = e.touches[0]; sx = lx = t.clientX; sy = t.clientY; lt = e.timeStamp; vx = dx = 0; gesture = 'pending';
 }, { passive: true });
 wrap.addEventListener('touchmove', e => {
   if (gesture !== 'pending' && gesture !== 'h') return;
@@ -256,8 +282,8 @@ wrap.addEventListener('touchmove', e => {
   if (gesture === 'pending') {
     if (Math.abs(mx) < 6 && Math.abs(my) < 6) return;
     gesture = Math.abs(mx) > Math.abs(my) * 0.8 && !hasSel() && order.length && !ended ? 'h' : 'v';
-    if (gesture === 'v') return;
-    sx = t.clientX; // start following from here so the card doesn't jump by the dead zone
+    if (gesture === 'v') { if (base) settle(); return; }
+    sx = t.clientX;                 // follow from here so the card doesn't jump by the dead zone
   }
   const dt = e.timeStamp - lt;
   if (dt > 0) vx = 0.7 * ((t.clientX - lx) / dt) + 0.3 * vx;   // smoothed velocity, px/ms
@@ -266,19 +292,22 @@ wrap.addEventListener('touchmove', e => {
   if (!raf) raf = requestAnimationFrame(() => {
     raf = 0;
     if (gesture !== 'h') return;
-    const x = dx > 0 && !canMove(-1) ? dx * 0.25 : dx;   // rubber-band when there is no previous card
+    let x = base + dx;
+    if (x > 0 && !canMove(-1)) x *= 0.25;    // rubber-band when there is no previous card
     pose(x, x / 20, 0);
   });
 }, { passive: true });
 function endDrag() {
   const was = gesture; gesture = '';
   if (raf) { cancelAnimationFrame(raf); raf = 0; }
-  if (was !== 'h') return;
+  if (was !== 'h') { if (was === 'pending' && base) settle(); return; }
   swiped = true;
-  const w = wrap.clientWidth, by = dx < 0 ? 1 : -1;
-  const flick = Math.abs(vx) > 0.35 && Math.sign(vx) === Math.sign(dx) && Math.abs(dx) > 20;
-  if ((Math.abs(dx) > Math.min(90, w * 0.25) || flick) && canMove(by)) animMove(by, true);
-  else run([[300, () => pose(0, 0, 300, SPRING)], [0, clearPose]]);
+  const x = base + dx, w = wrap.clientWidth;
+  const flick = Math.abs(vx) > 0.3 && Math.abs(dx) > 15;
+  const dirX = flick ? vx : x;
+  const by = dirX < 0 ? 1 : -1;
+  if ((flick || Math.abs(x) > Math.min(90, w * 0.25)) && canMove(by)) animMove(by);
+  else settle();
 }
 wrap.addEventListener('touchend', endDrag);
 wrap.addEventListener('touchcancel', endDrag);
