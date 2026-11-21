@@ -33,7 +33,8 @@
     .card { position:relative; flex:1; min-height:300px; transform-style:preserve-3d; transition:transform .4s cubic-bezier(.2,.7,.2,1); outline:none; touch-action:manipulation; }
     .card.flipped { transform:rotateY(180deg); }
     .face .term, .face .speaker { user-select:text; -webkit-user-select:text; }
-    .card.dragging, .card.sliding { will-change:translate, rotate; }
+    .card { will-change:translate, rotate; }
+    .card-wrap { will-change:opacity; }
     .face { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:52px 20px; border:1px solid var(--line); border-radius:24px; background:white; box-shadow:0 14px 45px #193d3212; backface-visibility:hidden; -webkit-backface-visibility:hidden; text-align:center; user-select:none; -webkit-user-select:none; }
     .back { transform:rotateY(180deg); background:var(--mint); }
     .side-label { position:absolute; top:18px; left:20px; color:var(--muted); font-size:.72rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
@@ -202,74 +203,85 @@ function restartRound(shuffled) { ended = false; flipped = false; position = 0; 
 function shuffle() { if (!order.length) return; ended = false; roundSize = order.length; for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; } position = 0; flipped = false; render(true); }
 
 // tap to flip; drag the card: left = next, right = previous (card follows the finger, flies off, next one slides in)
-const card = el('card');
+// Animations can always be interrupted: a new touch or button press finishes the running one instantly.
+const card = el('card'), wrap = el('wrap');
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-let sx = 0, sy = 0, st = 0, dx = 0, swiped = false, dragging = false, busy = false, gesture = '';
+const EASE_OUT = 'cubic-bezier(.2,.8,.2,1)', EASE_IN = 'cubic-bezier(.4,0,1,1)', SPRING = 'cubic-bezier(.3,1.4,.5,1)';
+let sx = 0, sy = 0, lx = 0, lt = 0, vx = 0, dx = 0, swiped = false, gesture = '', raf = 0;
+let anim = null;   // { timer, finish } of the running animation
 const canMove = by => order.length && !ended && position + by >= 0;
-function setPose(x, ease) {
-  card.style.transition = ease || 'none';
-  card.style.translate = x ? `${x}px 0` : '';
-  card.style.rotate = x ? `${x / 18}deg` : '';
+// opacity goes on the wrapper, never on the 3D card (opacity on a preserve-3d element breaks the flip faces in Safari)
+function pose(x, rot, ms, ease) {
+  const tr = ms ? `translate ${ms}ms ${ease}, rotate ${ms}ms ${ease}` : 'none';
+  card.style.transition = tr;
+  card.style.translate = x ? `${x}px 0` : '0px 0';
+  card.style.rotate = `${rot}deg`;
 }
-function clearPose() { card.style.transition = card.style.translate = card.style.rotate = card.style.opacity = ''; card.classList.remove('dragging', 'sliding'); }
-// fly the current card out (dir -1 = left/next, +1 = right/previous), switch, slide the new one in
-function animMove(by) {
-  if (busy) return;
-  if (!canMove(by)) { if (by < 0 && order.length && !ended) bounce(); return; }
+function fade(o, ms) { wrap.style.transition = ms ? `opacity ${ms}ms ease` : 'none'; wrap.style.opacity = o; }
+function clearPose() { card.style.transition = card.style.translate = card.style.rotate = ''; wrap.style.transition = wrap.style.opacity = ''; }
+function run(steps) {   // steps: [[ms, fn], ...] run one after another; finish() jumps to the end
+  finishAnim();
+  let i = 0;
+  const next = () => { if (i >= steps.length) { anim = null; return; } const [ms, fn] = steps[i++]; fn(); anim.timer = setTimeout(next, ms); };
+  anim = { timer: 0, finish() { clearTimeout(anim.timer); while (i < steps.length) steps[i++][1](); anim = null; clearPose(); } };
+  next();
+}
+function finishAnim() { if (anim) anim.finish(); }
+function animMove(by, fromDrag) {
+  if (!fromDrag) finishAnim();
+  if (!canMove(by)) { if (by < 0 && order.length && !ended) bounce(); else clearPose(); return; }
   if (reduced()) { clearPose(); move(by); return; }
-  busy = true;
-  const dir = by > 0 ? -1 : 1, w = el('wrap').clientWidth;
-  card.classList.add('sliding');
-  setPose(dir * (w + 120), 'translate .22s cubic-bezier(.4,0,1,1), rotate .22s cubic-bezier(.4,0,1,1), opacity .22s');
-  card.style.rotate = `${dir * 16}deg`; card.style.opacity = '0.4';
-  setTimeout(() => {
-    setPose(-dir * w * 0.55); card.style.rotate = `${-dir * 6}deg`; card.style.opacity = '0';
-    move(by);                       // renders the new card (unflipped, no flip animation since transition is off)
-    void card.offsetWidth;
-    setPose(0, 'translate .3s cubic-bezier(.2,.8,.2,1), rotate .3s cubic-bezier(.2,.8,.2,1), opacity .2s');
-    card.style.opacity = '1';
-    setTimeout(() => { clearPose(); busy = false; }, 320);
-  }, 220);
+  const dir = by > 0 ? -1 : 1, w = wrap.clientWidth;
+  const out = 200, inn = 280;
+  run([
+    [out, () => { pose(dir * (w + 140), dir * 14, out, EASE_IN); fade(0.5, out); }],
+    [20,  () => { pose(-dir * w * 0.35, -dir * 4, 0); fade(0, 0); move(by); void card.offsetWidth; }],
+    [inn, () => { pose(0, 0, inn, EASE_OUT); fade(1, inn * 0.7); }],
+    [0,   clearPose],
+  ]);
 }
 function bounce() {
-  if (reduced() || busy) return;
-  busy = true;
-  setPose(28, 'translate .12s ease-out, rotate .12s ease-out');
-  setTimeout(() => { setPose(0, 'translate .35s cubic-bezier(.3,1.6,.5,1), rotate .35s cubic-bezier(.3,1.6,.5,1)'); setTimeout(() => { clearPose(); busy = false; }, 360); }, 120);
+  if (reduced()) return;
+  run([[110, () => pose(26, 1.5, 110, 'ease-out')], [340, () => pose(0, 0, 340, SPRING)], [0, clearPose]]);
 }
-el('wrap').addEventListener('touchstart', e => {
-  if (busy || e.touches.length > 1) return;
-  const t = e.touches[0]; sx = t.clientX; sy = t.clientY; st = Date.now(); dx = 0; swiped = false; dragging = false; gesture = '';
+wrap.addEventListener('touchstart', e => {
+  gesture = '';
+  if (e.touches.length > 1 || e.target.closest('[data-say]')) return;
+  finishAnim();   // never ignore a swipe because the previous one is still animating
+  const t = e.touches[0]; sx = lx = t.clientX; sy = t.clientY; lt = e.timeStamp; vx = dx = 0; swiped = false; gesture = 'pending';
 }, { passive: true });
-el('wrap').addEventListener('touchmove', e => {
-  if (busy || gesture === 'v' || e.target.closest('[data-say]')) return;
+wrap.addEventListener('touchmove', e => {
+  if (gesture !== 'pending' && gesture !== 'h') return;
   const t = e.touches[0], mx = t.clientX - sx, my = t.clientY - sy;
-  if (!gesture) {
-    if (Math.abs(mx) < 8 && Math.abs(my) < 8) return;
-    gesture = Math.abs(mx) > Math.abs(my) && !hasSel() && order.length && !ended ? 'h' : 'v';
+  if (gesture === 'pending') {
+    if (Math.abs(mx) < 6 && Math.abs(my) < 6) return;
+    gesture = Math.abs(mx) > Math.abs(my) * 0.8 && !hasSel() && order.length && !ended ? 'h' : 'v';
     if (gesture === 'v') return;
-    dragging = true; card.classList.add('dragging');
+    sx = t.clientX; // start following from here so the card doesn't jump by the dead zone
   }
-  dx = mx;
-  // rubber-band when there is no previous card
-  const x = dx > 0 && !canMove(-1) ? dx * 0.25 : dx;
-  setPose(x);
+  const dt = e.timeStamp - lt;
+  if (dt > 0) vx = 0.7 * ((t.clientX - lx) / dt) + 0.3 * vx;   // smoothed velocity, px/ms
+  lx = t.clientX; lt = e.timeStamp;
+  dx = t.clientX - sx;
+  if (!raf) raf = requestAnimationFrame(() => {
+    raf = 0;
+    if (gesture !== 'h') return;
+    const x = dx > 0 && !canMove(-1) ? dx * 0.25 : dx;   // rubber-band when there is no previous card
+    pose(x, x / 20, 0);
+  });
 }, { passive: true });
 function endDrag() {
-  if (!dragging) return;
-  dragging = false; swiped = true; card.classList.remove('dragging');
-  const v = Math.abs(dx) / Math.max(Date.now() - st, 1), w = el('wrap').clientWidth;
-  const by = dx < 0 ? 1 : -1;
-  if ((Math.abs(dx) > Math.min(100, w * 0.28) || (v > 0.45 && Math.abs(dx) > 30)) && canMove(by)) {
-    // continue from where the finger left it
-    animMove(by);
-  } else {
-    setPose(0, 'translate .3s cubic-bezier(.3,1.4,.5,1), rotate .3s cubic-bezier(.3,1.4,.5,1)');
-    setTimeout(() => { if (!dragging && !busy) clearPose(); }, 320);
-  }
+  const was = gesture; gesture = '';
+  if (raf) { cancelAnimationFrame(raf); raf = 0; }
+  if (was !== 'h') return;
+  swiped = true;
+  const w = wrap.clientWidth, by = dx < 0 ? 1 : -1;
+  const flick = Math.abs(vx) > 0.35 && Math.sign(vx) === Math.sign(dx) && Math.abs(dx) > 20;
+  if ((Math.abs(dx) > Math.min(90, w * 0.25) || flick) && canMove(by)) animMove(by, true);
+  else run([[300, () => pose(0, 0, 300, SPRING)], [0, clearPose]]);
 }
-el('wrap').addEventListener('touchend', endDrag);
-el('wrap').addEventListener('touchcancel', endDrag);
+wrap.addEventListener('touchend', endDrag);
+wrap.addEventListener('touchcancel', endDrag);
 // flip only on a plain click/tap: not when selecting text (drag, double-click, long-press) or clearing a selection
 const hasSel = () => String(window.getSelection ? getSelection() : '').trim() !== '';
 let selAtDown = false, flipTimer = null;
