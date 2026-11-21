@@ -174,7 +174,18 @@ function move(by) {
 function restartRound(shuffled) { ended = false; flipped = false; position = 0; roundSize = order.length; if (shuffled) shuffle(); else render(true); }
 function shuffle() { if (!order.length) return; ended = false; roundSize = order.length; for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; } position = 0; flipped = false; render(true); }
 
-el('card').addEventListener('click', flip); el('flip').addEventListener('click', flip);
+// flip only on a plain click/tap: not when selecting text (drag, double-click, long-press) or clearing a selection
+const hasSel = () => String(window.getSelection ? getSelection() : '').trim() !== '';
+let selAtDown = false, flipTimer = null;
+el('card').addEventListener('pointerdown', () => { selAtDown = hasSel(); });
+function cardClick(e) {
+  clearTimeout(flipTimer);
+  if (e.detail > 1 || selAtDown || hasSel()) return;
+  // with a mouse, wait a moment so a double-click (word select) cancels the flip
+  const wait = matchMedia('(hover: hover) and (pointer: fine)').matches ? 250 : 0;
+  flipTimer = setTimeout(() => { if (!hasSel()) flip(); }, wait);
+}
+el('card').addEventListener('click', cardClick); el('flip').addEventListener('click', flip);
 el('prev').addEventListener('click', () => move(-1)); el('next').addEventListener('click', () => move(1));
 el('speak').addEventListener('click', play);
 el('know').addEventListener('click', know);

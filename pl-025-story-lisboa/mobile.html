@@ -32,6 +32,7 @@
     .card-wrap { flex:1; display:flex; perspective:1200px; touch-action:pan-y; }
     .card { position:relative; flex:1; min-height:300px; transform-style:preserve-3d; transition:transform .4s cubic-bezier(.2,.7,.2,1); outline:none; touch-action:manipulation; }
     .card.flipped { transform:rotateY(180deg); }
+    .face .term, .face .speaker { user-select:text; -webkit-user-select:text; }
     .card.swipe-l { animation:outL .18s ease-in; } .card.swipe-r { animation:outR .18s ease-in; }
     @keyframes outL { to { translate:-40px 0; opacity:.3; } } @keyframes outR { to { translate:40px 0; opacity:.3; } }
     .face { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:52px 20px; border:1px solid var(--line); border-radius:24px; background:white; box-shadow:0 14px 45px #193d3212; backface-visibility:hidden; -webkit-backface-visibility:hidden; text-align:center; user-select:none; -webkit-user-select:none; }
@@ -199,7 +200,7 @@ let sx = 0, sy = 0, st = 0, swiped = false;
 el('wrap').addEventListener('touchstart', e => { const t = e.touches[0]; sx = t.clientX; sy = t.clientY; st = Date.now(); swiped = false; }, { passive: true });
 el('wrap').addEventListener('touchend', e => {
   const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
-  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && Date.now() - st < 800) {
+  if (!hasSel() && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && Date.now() - st < 800) {
     swiped = true;
     const card = el('card'); card.classList.remove('swipe-l', 'swipe-r'); void card.offsetWidth;
     card.classList.add(dx < 0 ? 'swipe-l' : 'swipe-r');
@@ -207,7 +208,18 @@ el('wrap').addEventListener('touchend', e => {
     move(dx < 0 ? 1 : -1);
   }
 });
-el('card').addEventListener('click', e => { if (swiped) { swiped = false; return; } if (e.target.closest('[data-say]')) return; flip(); });
+// flip only on a plain click/tap: not when selecting text (drag, double-click, long-press) or clearing a selection
+const hasSel = () => String(window.getSelection ? getSelection() : '').trim() !== '';
+let selAtDown = false, flipTimer = null;
+el('card').addEventListener('pointerdown', () => { selAtDown = hasSel(); });
+function cardClick(e) {
+  clearTimeout(flipTimer);
+  if (e.detail > 1 || selAtDown || hasSel()) return;
+  // with a mouse, wait a moment so a double-click (word select) cancels the flip
+  const wait = matchMedia('(hover: hover) and (pointer: fine)').matches ? 250 : 0;
+  flipTimer = setTimeout(() => { if (!hasSel()) flip(); }, wait);
+}
+el('card').addEventListener('click', e => { if (swiped) { swiped = false; return; } if (e.target.closest('[data-say]')) return; cardClick(e); });
 document.querySelectorAll('[data-say]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); play(); }));
 el('flip').addEventListener('click', flip);
 el('prev').addEventListener('click', () => move(-1)); el('next').addEventListener('click', () => move(1));
