@@ -235,7 +235,7 @@ chips(); build();
   #wordpop .wp-text { font-weight:700; overflow-wrap:anywhere; }
   #wordpop .wp-tr { margin-top:6px; color:#172b2a; overflow-wrap:anywhere; }
   #wordpop .wp-src { margin-top:4px; color:#61716e; font-size:.78rem; }
-  #wordpop .wp-src a { color:#0c6958; }
+  #wordpop .wp-src a { color:#0c6958; line-height:1.9; }
 </style>
 <div id="wordpop" role="dialog" aria-label="Selected word">
   <div class="wp-row"><button class="wp-say" type="button" aria-label="Listen">🔊</button><span class="wp-text"></span></div>
@@ -356,6 +356,8 @@ chips(); build();
     $('.wp-text').textContent = text;
     $('.wp-tr').textContent = '…';
     const gt = `https://translate.google.com/?sl=${from === 'pt' ? 'pt' : 'en'}&tl=${from === 'pt' ? 'en' : 'pt'}&text=${encodeURIComponent(text)}`;
+    const cam = `https://dictionary.cambridge.org/search/direct/?datasetsearch=${from === 'pt' ? 'portuguese-english' : 'english-portuguese'}&q=${encodeURIComponent(text)}`;
+    const links = `<a href="${gt}" target="_blank" rel="noopener">Google Translate ↗</a><br><a href="${cam}" target="_blank" rel="noopener">Cambridge Dictionary ↗</a>`;
     $('.wp-src').innerHTML = '';
     $('.wp-say').style.display = from === 'pt' ? '' : 'none';
     place(range.getBoundingClientRect());
@@ -364,11 +366,11 @@ chips(); build();
       if (id !== reqId) return;
       $('.wp-tr').textContent = r.t;
       if (from === 'en') { current.pt = r.t; $('.wp-say').style.display = ''; }
-      $('.wp-src').innerHTML = `${r.src} · <a href="${gt}" target="_blank" rel="noopener">Google Translate ↗</a>`;
+      $('.wp-src').innerHTML = `${r.src} · ${links}`;
     } catch (e) {
       if (id !== reqId) return;
       $('.wp-tr').textContent = navigator.onLine === false ? 'Offline: no translation' : 'No translation found';
-      $('.wp-src').innerHTML = `<a href="${gt}" target="_blank" rel="noopener">Google Translate ↗</a>`;
+      $('.wp-src').innerHTML = links;
     }
     place(range.getBoundingClientRect());
   }
