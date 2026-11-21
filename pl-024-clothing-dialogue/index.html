@@ -384,6 +384,16 @@ chips(); build();
   // keep the selection when pressing the popup's buttons
   pop.addEventListener('mousedown', e => { if (!e.target.closest('a')) e.preventDefault(); });
   pop.addEventListener('click', e => e.stopPropagation());
+  // Reuse one tab per dictionary. Keep the window handle too: some sites (Google Translate) drop the tab's
+  // name, so a target="name" link alone would open a new tab every time.
+  const wins = {};
+  pop.addEventListener('click', e => {
+    const a = e.target.closest('a[target^="pfc-"]'); if (!a) return;
+    e.preventDefault();
+    const w = wins[a.target];
+    if (w && !w.closed) { try { w.location.href = a.href; w.focus(); return; } catch (x) {} }
+    wins[a.target] = window.open(a.href, a.target) || wins[a.target];
+  });
   $('.wp-say').addEventListener('click', () => current && speak(current.pt));
   document.addEventListener('selectionchange', () => { clearTimeout(timer); timer = setTimeout(show, 280); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') { hide(); window.getSelection().removeAllRanges(); } });
