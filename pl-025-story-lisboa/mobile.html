@@ -329,11 +329,20 @@ el('prev').addEventListener('click', () => animMove(-1)); el('next').addEventLis
 el('know').addEventListener('click', know);
 const resetKnown = () => { inSection().forEach(i => { known.delete(i); Sync.setKnown(DECK, keyOf(i), false); }); chips(); build(); };
 el('reset').addEventListener('click', () => { if (confirm('Mark all cards in this section as not known?')) resetKnown(); });
-el('restart').addEventListener('click', resetKnown);
+// iOS can swallow the first tap on a screen that just appeared (it treats it as ending a scroll/gesture),
+// so the end-of-round buttons act on touchend directly; click still works for mouse/keyboard.
+function onTap(b, fn) {
+  let tx = 0, ty = 0, ok = false, last = 0;
+  b.addEventListener('touchstart', e => { const t = e.touches[0]; tx = t.clientX; ty = t.clientY; ok = true; }, { passive: true });
+  b.addEventListener('touchmove', e => { const t = e.touches[0]; if (Math.hypot(t.clientX - tx, t.clientY - ty) > 12) ok = false; }, { passive: true });
+  b.addEventListener('touchend', e => { if (!ok) return; ok = false; e.preventDefault(); last = Date.now(); fn(); });
+  b.addEventListener('click', () => { if (Date.now() - last > 800) fn(); });
+}
+onTap(el('restart'), () => resetKnown());
 el('shuffle').addEventListener('click', shuffle);
-el('again').addEventListener('click', () => restartRound(false));
-el('again-shuffle').addEventListener('click', () => restartRound(true));
-el('back-last').addEventListener('click', () => { ended = false; position = order.length - 1; flipped = false; render(true); });
+onTap(el('again'), () => restartRound(false));
+onTap(el('again-shuffle'), () => restartRound(true));
+onTap(el('back-last'), () => { ended = false; position = order.length - 1; flipped = false; render(true); });
 el('direction').addEventListener('click', () => { reverse = !reverse; el('direction').textContent = reverse ? 'Portuguese → English' : 'English → Portuguese'; flipped = false; render(true); });
 el('autoplay').addEventListener('click', () => { autoplay = !autoplay; el('autoplay').textContent = `Auto-play: ${autoplay ? 'on' : 'off'}`; el('autoplay').setAttribute('aria-pressed', String(autoplay)); });
 // iPad with keyboard
