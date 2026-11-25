@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="LexiFlow">
+  <meta name="theme-color" content="#fbfaf6">
+  <link rel="apple-touch-icon" href="../icon.png">
+  <title>LexiFlow — Flashcards</title>
+  <style>
+    :root { color-scheme: light; --ink:#172b2a; --muted:#61716e; --green:#0c6958; --mint:#e5f3ee; --paper:#fbfaf6; --line:#dce5df; --gold:#f0c66d; }
+    * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html, body { height:100%; overflow-x:hidden; overflow-x:clip; }
+    body { margin:0; background:radial-gradient(circle at 15% 10%,#e5f3ee 0,transparent 34%),var(--paper); color:var(--ink); font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; overscroll-behavior:none; }
+    main { display:flex; flex-direction:column; width:min(100%,760px); min-height:100%; margin:0 auto;
+      padding:calc(env(safe-area-inset-top) + 28px) calc(env(safe-area-inset-right) + 16px) calc(env(safe-area-inset-bottom) + 12px) calc(env(safe-area-inset-left) + 16px); }
+    .top { display:flex; justify-content:space-between; align-items:flex-end; gap:10px; margin-bottom:10px; }
+    .eyebrow { margin:0 0 2px; color:var(--green); font-size:.72rem; font-weight:750; letter-spacing:.12em; text-transform:uppercase; }
+    .eyebrow a { display:inline-block; padding:4px 0; color:inherit; text-decoration:none; }
+    h1 { margin:0; font-size:1.35rem; line-height:1.15; }
+    .count { color:var(--muted); font-size:.85rem; font-variant-numeric:tabular-nums; white-space:nowrap; text-align:right; }
+    .chips { display:flex; gap:6px; overflow-x:auto; margin:0 -16px 10px; padding:2px 16px; scrollbar-width:none; }
+    .chips::-webkit-scrollbar { display:none; }
+    .chips button { flex:none; min-height:36px; padding:4px 14px; border-radius:99px; font-size:.85rem; color:var(--muted); }
+    .chips button[aria-pressed="true"] { border-color:var(--green); background:var(--mint); color:var(--green); }
+    .progress { height:6px; overflow:hidden; margin:0 0 12px; border-radius:99px; background:var(--line); }
+    .progress span { display:block; width:0; height:100%; border-radius:inherit; background:var(--green); transition:width .2s ease; }
+    .stage { position:relative; flex:1; display:flex; flex-direction:column; min-height:300px; }
+    .card-wrap { flex:1; display:flex; perspective:1200px; touch-action:pan-y; }
+    .card { position:relative; flex:1; min-height:300px; transform-style:preserve-3d; transition:transform .4s cubic-bezier(.2,.7,.2,1); outline:none; touch-action:manipulation; }
+    .card.flipped { transform:rotateY(180deg); }
+    .face .term, .face .speaker { user-select:text; -webkit-user-select:text; }
+    .card { will-change:translate, rotate; }
+    .card-wrap { will-change:opacity; }
+    .face { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:52px 20px; border:1px solid var(--line); border-radius:24px; background:white; box-shadow:0 14px 45px #193d3212; backface-visibility:hidden; -webkit-backface-visibility:hidden; text-align:center; user-select:none; -webkit-user-select:none; }
+    .back { transform:rotateY(180deg); background:var(--mint); }
+    .side-label { position:absolute; top:18px; left:20px; color:var(--muted); font-size:.72rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+    .say { position:absolute; bottom:10px; right:10px; display:grid; place-items:center; width:48px; height:48px; min-height:0; padding:0; border:1px solid var(--line); border-radius:99px; background:white; color:var(--green); box-shadow:0 2px 8px #193d3210; transition:transform .12s ease, background .15s, border-color .15s; }
+    .back .say { background:#f4fbf8; border-color:#c9e3d9; }
+    .say:active, .say.playing { background:var(--mint); border-color:var(--green); }
+    .say.playing .w1 { animation:wave 1s ease-in-out infinite; } .say.playing .w2 { animation:wave 1s ease-in-out .2s infinite; }
+    @keyframes wave { 50% { opacity:.25; } }
+    .speaker { margin:0 0 8px; color:var(--green); font-size:.85rem; font-weight:750; letter-spacing:.08em; text-transform:uppercase; }
+    .speaker:empty { display:none; }
+    .term { margin:0; font-size:clamp(2.2rem,10vw,4rem); font-weight:750; line-height:1.15; overflow-wrap:anywhere; }
+    .term.md { font-size:clamp(1.6rem,6.5vw,2.6rem); line-height:1.25; }
+    .term.lg { font-size:clamp(1.2rem,4.6vw,1.7rem); line-height:1.35; font-weight:700; }
+    .hint { margin:16px 0 0; color:var(--muted); font-size:.9rem; }
+    .category { position:absolute; bottom:18px; padding:5px 11px; border-radius:99px; background:#f3f5f2; color:var(--green); font-size:.8rem; font-weight:700; }
+    .back .category { background:#d4ebe3; }
+    button { min-height:48px; padding:10px 14px; border:1px solid var(--line); border-radius:14px; background:white; color:var(--ink); font:inherit; font-weight:650; cursor:pointer; touch-action:manipulation; }
+    button { transition:transform .12s ease, background-color .15s, border-color .15s; }
+    button:active, .more summary:active { transform:scale(.96); }
+    button:not(.primary):not(.say):active { background:#f3f7f4; }
+    button.primary:active { background:#0a5a4b; }
+    button:focus-visible,.card:focus-visible { outline:3px solid var(--gold); outline-offset:3px; }
+    button.primary { border-color:var(--green); background:var(--green); color:white; }
+    button.known { border-color:var(--green); color:var(--green); }
+    .controls { display:grid; grid-template-columns:1fr 1.4fr 1fr; gap:8px; margin-top:12px; }
+    .controls .known { grid-column:1 / -1; min-height:56px; font-size:1.05rem; }
+    .audio-status { min-height:1.3em; margin:8px 0 0; color:var(--muted); text-align:center; font-size:.85rem; }
+    .done { display:none; flex:1; flex-direction:column; justify-content:center; align-items:center; border:1px solid var(--line); border-radius:24px; background:var(--mint); text-align:center; padding:28px 20px; }
+    .done h2 { margin:0 0 8px; font-size:1.7rem; }
+    .done p { margin:0 0 18px; color:var(--muted); }
+    .done .row { display:flex; flex-direction:column; gap:10px; width:min(100%,320px); }
+    main.all-known .done.all { display:flex; }
+    main.all-known .card-wrap, main.all-known .controls, main.round-end .card-wrap, main.round-end .controls { display:none; }
+    main.round-end:not(.all-known) .done.round { display:flex; }
+    .more { margin-top:6px; }
+    .more summary { transition:transform .12s ease; list-style:none; text-align:center; color:var(--green); font-weight:650; padding:10px; cursor:pointer; }
+    .more summary::-webkit-details-marker { display:none; }
+    .more .grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .more .grid button { font-size:.92rem; }
+    .help { margin:10px 0 0; color:var(--muted); text-align:center; font-size:.8rem; }
+    .help a { color:var(--green); }
+    @media (min-width:700px) { .term { font-size:clamp(3rem,7vw,4.6rem); } .more .grid { grid-template-columns:repeat(3,1fr); } }
+    @media (orientation:landscape) and (max-height:500px) { .card { min-height:200px; } .stage { min-height:200px; } .controls { grid-template-columns:1fr 1.4fr 1fr 1.4fr; } .controls .known { grid-column:auto; min-height:48px; } }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after{transition:none!important;animation:none!important} }
+  </style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <div><p class="eyebrow"><a href="../">← All decks</a></p><h1>LexiFlow</h1></div>
+    <div class="count" id="count" aria-live="polite"></div>
+  </header>
+  <div class="chips" id="chips" role="group" aria-label="Sections"></div>
+  <div class="progress" aria-hidden="true"><span id="bar"></span></div>
+  <div class="stage">
+    <section class="card-wrap" id="wrap" aria-label="Flashcard">
+      <article class="card" id="card" tabindex="0" role="button" aria-label="Flashcard. Tap to flip.">
+        <div class="face front"><span class="side-label" id="front-label">Português</span><button class="say" data-say aria-label="Hear Portuguese"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5a1 1 0 0 0 1 1h3l4.3 3.6a.6.6 0 0 0 1-.46V5.36a.6.6 0 0 0-1-.46L8 8.5H5a1 1 0 0 0-1 1z"/><path class="w1" d="M16.5 9.2a4 4 0 0 1 0 5.6"/><path class="w2" d="M19.2 6.6a7.6 7.6 0 0 1 0 10.8"/></svg></button><p class="speaker" id="front-speaker"></p><p class="term" id="front"></p><p class="hint">Tap to flip · swipe for next</p><span class="category" id="category"></span></div>
+        <div class="face back"><span class="side-label" id="back-label">English</span><button class="say" data-say aria-label="Hear Portuguese"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5a1 1 0 0 0 1 1h3l4.3 3.6a.6.6 0 0 0 1-.46V5.36a.6.6 0 0 0-1-.46L8 8.5H5a1 1 0 0 0-1 1z"/><path class="w1" d="M16.5 9.2a4 4 0 0 1 0 5.6"/><path class="w2" d="M19.2 6.6a7.6 7.6 0 0 1 0 10.8"/></svg></button><p class="speaker" id="back-speaker"></p><p class="term" id="back"></p><p class="hint">Swipe ← next · → previous</p><span class="category" id="back-category"></span></div>
+      </article>
+    </section>
+    <section class="done all" aria-live="polite"><h2>All known! 🎉</h2><p>You marked every card in this section as known.</p><div class="row"><button class="primary" id="restart">Study again</button></div></section>
+    <section class="done round" aria-live="polite"><h2>Round complete! 👏</h2><p id="round-text"></p><div class="row"><button class="primary" id="again">Start again</button><button id="again-shuffle">Shuffle &amp; start again</button><button id="back-last">← Back to last card</button></div></section>
+  </div>
+  <nav class="controls" aria-label="Flashcard controls">
+    <button id="prev" aria-label="Previous card">←</button>
+    <button class="primary" id="flip">Flip</button>
+    <button id="next" aria-label="Next card">→</button>
+    <button class="known" id="know">✓ Know it</button>
+  </nav>
+  <p class="audio-status" id="audio-status" aria-live="polite"></p>
+  <details class="more">
+    <summary>More options</summary>
+    <div class="grid">
+      <button id="shuffle">Shuffle deck</button>
+      <button id="direction">English → Portuguese</button>
+      <button id="autoplay" aria-pressed="true">Auto-play: on</button>
+      <button id="reset">Reset known</button>
+      <button id="sync-btn">☁︎ Sync: off</button>
+    </div>
+  </details>
+  <p class="help">Audio: Microsoft Raquel (pt-PT) · <a href="index.html">Mac version</a></p>
+</main>
+<script src="../sync.js"></script>
+<script>
+const cards = [{"s": "Nouns", "pt": "fundo", "en": "bottom (a parte mais profunda de algo)", "a": "audio/plLexiFlow-001-fundo.mp3"}, {"s": "Nouns", "pt": "voz", "en": "voice (possibilidade de falar)", "a": "audio/plLexiFlow-002-voz.mp3"}, {"s": "Nouns", "pt": "gruta", "en": "grotto, cave (cavidade em rocha)", "a": "audio/plLexiFlow-003-gruta.mp3"}, {"s": "Nouns", "pt": "entardecer", "en": "sunset, dusk (pôr-do-sol)", "a": "audio/plLexiFlow-004-entardecer.mp3"}, {"s": "Nouns", "pt": "céu", "en": "sky (o espaço por cima da terra)", "a": "audio/plLexiFlow-005-ceu.mp3"}, {"s": "Nouns", "pt": "dedo", "en": "finger, toe (cada uma das partes articuladas das mãos e dos pés)", "a": "audio/plLexiFlow-006-dedo.mp3"}, {"s": "Nouns", "pt": "fonte", "en": "fountain (construção de onde a água corre)", "a": "audio/plLexiFlow-007-fonte.mp3"}, {"s": "Nouns", "pt": "chávena", "en": "cup (pequena taça com asa para servir bebidas)", "a": "audio/plLexiFlow-008-chavena.mp3"}, {"s": "Nouns", "pt": "onda", "en": "wave (massa de água que se eleva)", "a": "audio/plLexiFlow-009-onda.mp3"}, {"s": "Nouns", "pt": "gaivota", "en": "seagull (ave aquática)", "a": "audio/plLexiFlow-010-gaivota.mp3"}, {"s": "Nouns", "pt": "rosto", "en": "face (cara, face)", "a": "audio/plLexiFlow-011-rosto.mp3"}, {"s": "Nouns", "pt": "riso", "en": "laughter (ato de rir, sorrir)", "a": "audio/plLexiFlow-012-riso.mp3"}, {"s": "Nouns", "pt": "morador", "en": "inhabitant, resident (habitante, residente)", "a": "audio/plLexiFlow-013-morador.mp3"}, {"s": "Nouns", "pt": "som", "en": "sound (aquilo que se ouve, ruído)", "a": "audio/plLexiFlow-014-som.mp3"}, {"s": "Nouns", "pt": "telhado", "en": "roof (cobertura externa de uma construção)", "a": "audio/plLexiFlow-015-telhado.mp3"}, {"s": "Nouns", "pt": "vista", "en": "view (aquilo que se vê, paisagem)", "a": "audio/plLexiFlow-016-vista.mp3"}, {"s": "Nouns", "pt": "candeeiro", "en": "lamp (utensílio destinado à iluminação)", "a": "audio/plLexiFlow-017-candeeiro.mp3"}, {"s": "Nouns", "pt": "percurso", "en": "route (caminho, trajeto)", "a": "audio/plLexiFlow-018-percurso.mp3"}, {"s": "Nouns", "pt": "descoberta", "en": "discovery (ato de achar algo)", "a": "audio/plLexiFlow-019-descoberta.mp3"}, {"s": "Nouns", "pt": "certeza", "en": "certainty (coisa definida)", "a": "audio/plLexiFlow-020-certeza.mp3"}, {"s": "Nouns", "pt": "motivo", "en": "reason", "a": "audio/plLexiFlow-021-motivo.mp3"}, {"s": "Nouns", "pt": "ordem", "en": "order", "a": "audio/plLexiFlow-022-ordem.mp3"}, {"s": "Nouns", "pt": "encerramento", "en": "closing", "a": "audio/plLexiFlow-023-encerramento.mp3"}, {"s": "Nouns", "pt": "nata", "en": "cream", "a": "audio/plLexiFlow-024-nata.mp3"}, {"s": "Nouns", "pt": "bocadinho", "en": "just a little bit", "a": "audio/plLexiFlow-025-bocadinho.mp3"}, {"s": "Nouns", "pt": "porta", "en": "door", "a": "audio/plLexiFlow-026-porta.mp3"}, {"s": "Nouns", "pt": "cadeira", "en": "chair", "a": "audio/plLexiFlow-027-cadeira.mp3"}, {"s": "Nouns", "pt": "mesa", "en": "table", "a": "audio/plLexiFlow-028-mesa.mp3"}, {"s": "Nouns", "pt": "dicionário", "en": "dictionary", "a": "audio/plLexiFlow-029-dicionario.mp3"}, {"s": "Verbs", "pt": "estreitar", "en": "to narrow (ficar mais estreito)", "a": "audio/plLexiFlow-030-estreitar.mp3"}, {"s": "Verbs", "pt": "largar", "en": "to let go (soltar)", "a": "audio/plLexiFlow-031-largar.mp3"}, {"s": "Verbs", "pt": "apanhar", "en": "to pick (colher)", "a": "audio/plLexiFlow-032-apanhar.mp3"}, {"s": "Verbs", "pt": "significa", "en": "it means (significar)", "a": "audio/plLexiFlow-033-significa.mp3"}, {"s": "Verbs", "pt": "circundam", "en": "they surround (circundar)", "a": "audio/plLexiFlow-034-circundam.mp3"}, {"s": "Verbs", "pt": "assinale", "en": "tick, mark (assinalar)", "a": "audio/plLexiFlow-035-assinale.mp3"}, {"s": "Adjectives and adverbs", "pt": "fundo", "en": "deep (profundo)", "a": "audio/plLexiFlow-036-fundo.mp3"}, {"s": "Adjectives and adverbs", "pt": "espalhado", "en": "scattered (que está separado, disperso)", "a": "audio/plLexiFlow-037-espalhado.mp3"}, {"s": "Adjectives and adverbs", "pt": "comprido", "en": "long (extenso, longo)", "a": "audio/plLexiFlow-038-comprido.mp3"}, {"s": "Adjectives and adverbs", "pt": "anterior", "en": "previous", "a": "audio/plLexiFlow-039-anterior.mp3"}, {"s": "Adjectives and adverbs", "pt": "escondidas", "en": "hidden (feminine plural)", "a": "audio/plLexiFlow-040-escondidas.mp3"}, {"s": "Adjectives and adverbs", "pt": "afixado", "en": "posted, put up", "a": "audio/plLexiFlow-041-afixado.mp3"}, {"s": "Adjectives and adverbs", "pt": "indiferente", "en": "indifferent", "a": "audio/plLexiFlow-042-indiferente.mp3"}, {"s": "Adjectives and adverbs", "pt": "ainda", "en": "still (até este momento)", "a": "audio/plLexiFlow-043-ainda.mp3"}, {"s": "Adjectives and adverbs", "pt": "quase", "en": "almost (aproximadamente)", "a": "audio/plLexiFlow-044-quase.mp3"}, {"s": "Adjectives and adverbs", "pt": "trás", "en": "back (em posição posterior, atrás)", "a": "audio/plLexiFlow-045-tras.mp3"}, {"s": "Adjectives and adverbs", "pt": "definitivamente", "en": "definitively, for good (para sempre)", "a": "audio/plLexiFlow-046-definitivamente.mp3"}, {"s": "Adjectives and adverbs", "pt": "apenas", "en": "only (somente)", "a": "audio/plLexiFlow-047-apenas.mp3"}, {"s": "Adjectives and adverbs", "pt": "só", "en": "only", "a": "audio/plLexiFlow-048-so.mp3"}, {"s": "Adjectives and adverbs", "pt": "talvez", "en": "maybe (é possível que, porventura, quiçá)", "a": "audio/plLexiFlow-049-talvez.mp3"}, {"s": "Adjectives and adverbs", "pt": "tanto", "en": "so much, as much (exprime grande quantidade)", "a": "audio/plLexiFlow-050-tanto.mp3"}, {"s": "Adjectives and adverbs", "pt": "então", "en": "then, so", "a": "audio/plLexiFlow-051-entao.mp3"}, {"s": "Adjectives and adverbs", "pt": "de novo", "en": "again", "a": "audio/plLexiFlow-052-de-novo.mp3"}, {"s": "Adjectives and adverbs", "pt": "a seguir", "en": "next, afterwards", "a": "audio/plLexiFlow-053-a-seguir.mp3"}, {"s": "Adjectives and adverbs", "pt": "hoje em dia", "en": "nowadays", "a": "audio/plLexiFlow-054-hoje-em-dia.mp3"}, {"s": "Adjectives and adverbs", "pt": "maioritariamente", "en": "mostly", "a": "audio/plLexiFlow-055-maioritariamente.mp3"}, {"s": "Adjectives and adverbs", "pt": "na maior parte", "en": "mostly, for the most part", "a": "audio/plLexiFlow-056-na-maior-parte.mp3"}, {"s": "Connectors", "pt": "se", "en": "if (exprime uma condição)", "a": "audio/plLexiFlow-057-se.mp3"}, {"s": "Connectors", "pt": "embora", "en": "although (ainda que, apesar de)", "a": "audio/plLexiFlow-058-embora.mp3"}, {"s": "Connectors", "pt": "logo", "en": "therefore (portanto, por conseguinte)", "a": "audio/plLexiFlow-059-logo.mp3"}, {"s": "Connectors", "pt": "portanto", "en": "so (indica consequência lógica)", "a": "audio/plLexiFlow-060-portanto.mp3"}, {"s": "Connectors", "pt": "logo que", "en": "as soon as", "a": "audio/plLexiFlow-061-logo-que.mp3"}, {"s": "Phrases and sentences", "pt": "ida e volta", "en": "round trip (ato de ir e voltar)", "a": "audio/plLexiFlow-062-ida-e-volta.mp3"}, {"s": "Phrases and sentences", "pt": "o voo de regresso", "en": "the return flight", "a": "audio/plLexiFlow-063-o-voo-de-regresso.mp3"}, {"s": "Phrases and sentences", "pt": "o bilhete só de ida", "en": "the one-way ticket", "a": "audio/plLexiFlow-064-o-bilhete-so-de-ida.mp3"}, {"s": "Phrases and sentences", "pt": "quanto?", "en": "how much?", "a": "audio/plLexiFlow-065-quanto.mp3"}, {"s": "Phrases and sentences", "pt": "Tem a certeza?", "en": "Are you sure?", "a": "audio/plLexiFlow-066-tem-a-certeza.mp3"}, {"s": "Phrases and sentences", "pt": "não vale a pena", "en": "it's not worth it", "a": "audio/plLexiFlow-067-nao-vale-a-pena.mp3"}, {"s": "Phrases and sentences", "pt": "não percebo", "en": "I don't understand", "a": "audio/plLexiFlow-068-nao-percebo.mp3"}, {"s": "Phrases and sentences", "pt": "até lá", "en": "until then", "a": "audio/plLexiFlow-069-ate-la.mp3"}, {"s": "Phrases and sentences", "pt": "até logo!", "en": "see you later!", "a": "audio/plLexiFlow-070-ate-logo.mp3"}, {"s": "Phrases and sentences", "pt": "até amanhã!", "en": "see you tomorrow!", "a": "audio/plLexiFlow-071-ate-amanha.mp3"}, {"s": "Phrases and sentences", "pt": "até já!", "en": "see you soon!", "a": "audio/plLexiFlow-072-ate-ja.mp3"}, {"s": "Phrases and sentences", "pt": "até à próxima!", "en": "until next time!", "a": "audio/plLexiFlow-073-ate-a-proxima.mp3"}, {"s": "Phrases and sentences", "pt": "adeus! boa noite!", "en": "goodbye! good night!", "a": "audio/plLexiFlow-074-adeus-boa-noite.mp3"}, {"s": "Phrases and sentences", "pt": "o dia todo", "en": "all day long", "a": "audio/plLexiFlow-075-o-dia-todo.mp3"}, {"s": "Phrases and sentences", "pt": "Use os nomes das cidades do quadro.", "en": "Use the city names from the table.", "a": "audio/plLexiFlow-076-use-os-nomes-das-cidades-do-quadro.mp3"}, {"s": "Phrases and sentences", "pt": "Logo que chegares, vamos ao médico.", "en": "As soon as you arrive, we'll go to the doctor.", "a": "audio/plLexiFlow-077-logo-que-chegares-vamos-ao-medico.mp3"}, {"s": "Phrases and sentences", "pt": "Ele bebeu, logo não pode conduzir.", "en": "He drank, so he can't drive.", "a": "audio/plLexiFlow-078-ele-bebeu-logo-nao-pode-conduzir.mp3"}];
+const SPEAKER = /^(Cliente|Empregado|Empregada):\s*/;
+const sections = [...new Set(cards.map(c => c.s))];
+const DECK = 'lexiflow';
+const keyOf = i => cards[i].s + '|' + cards[i].pt;
+let known = new Set();
+const loadKnown = () => { known = new Set(cards.map((c, i) => i).filter(i => Sync.isKnown(DECK, keyOf(i)))); };
+loadKnown();
+let ended = false, roundSize = 0;
+let section = '', order = [], position = 0, flipped = false, reverse = false, autoplay = true;
+const el = id => document.getElementById(id);
+const main = document.querySelector('main');
+const audio = new Audio(); audio.preload = 'auto';
+
+function split(pt) { const m = pt.match(SPEAKER); return m ? [m[1], pt.slice(m[0].length)] : ['', pt]; }
+function sizeClass(t) { return t.length > 60 ? 'term lg' : t.length > 20 ? 'term md' : 'term'; }
+function inSection() { return cards.map((c, i) => i).filter(i => !section || cards[i].s === section); }
+
+function build() {
+  order = inSection().filter(i => !known.has(i));
+  position = 0; flipped = false; ended = false; roundSize = order.length; render(true);
+}
+function chips() {
+  const all = [['', `All (${cards.filter((c, i) => !known.has(i)).length})`], ...sections.map(s => [s, `${s} (${cards.filter((c, i) => c.s === s && !known.has(i)).length})`])];
+  el('chips').innerHTML = '';
+  for (const [value, label] of all) {
+    const b = document.createElement('button');
+    b.textContent = label; b.setAttribute('aria-pressed', String(value === section));
+    b.onclick = () => { section = value; chips(); build(); };
+    el('chips').appendChild(b);
+  }
+}
+function render(fresh, quiet) {
+  const total = inSection().length, done = inSection().filter(i => known.has(i)).length;
+  el('bar').style.width = `${total ? (done / total) * 100 : 0}%`;
+  main.classList.toggle('all-known', !order.length);
+  main.classList.toggle('round-end', ended && !!order.length);
+  if (!order.length) { el('count').textContent = `Known ${done}/${total}`; return; }
+  if (ended) {
+    el('count').textContent = `Known ${done}/${total}`;
+    el('round-text').textContent = `You went through all ${roundSize} cards. Known: ${done} of ${total}. ${order.length} still to learn.`;
+    return;
+  }
+  const c = cards[order[position]], [who, pt] = split(c.pt);
+  const front = reverse ? c.en : pt, back = reverse ? pt : c.en;
+  el('front').textContent = front; el('front').className = sizeClass(front);
+  el('back').textContent = back; el('back').className = sizeClass(back);
+  el('front-speaker').textContent = who; el('back-speaker').textContent = who;
+  el('front-label').textContent = reverse ? 'English' : 'Português';
+  el('back-label').textContent = reverse ? 'Português' : 'English';
+  el('category').textContent = c.s; el('back-category').textContent = c.s;
+  el('count').innerHTML = `${position + 1} / ${order.length}<br>Known ${done}/${total}`;
+  el('card').classList.toggle('flipped', flipped);
+  el('card').setAttribute('aria-label', `${front}. ${flipped ? 'Answer shown.' : 'Tap to flip.'}`);
+  if (!quiet && autoplay && ((fresh && !reverse) || (!fresh && flipped && reverse))) queuePlay();
+}
+let playTimer = 0;
+function queuePlay() {   // wait until the card has settled so audio loading doesn't stutter the animation
+  clearTimeout(playTimer);
+  if (anim) { audio.pause(); playTimer = setTimeout(play, IN + 40); } else play();
+}
+function play() {
+  clearTimeout(playTimer);
+  if (!order.length || ended) return;
+  const c = cards[order[position]];
+  audio.pause(); audio.src = c.a; audio.currentTime = 0;
+  audio.play().then(() => { el('audio-status').textContent = ''; })
+    .catch(() => { el('audio-status').textContent = 'Tap the speaker to hear the Portuguese.'; });
+}
+const setPlaying = on => document.querySelectorAll('[data-say]').forEach(b => b.classList.toggle('playing', on));
+audio.addEventListener('playing', () => setPlaying(true));
+['pause', 'ended', 'error', 'emptied'].forEach(ev => audio.addEventListener(ev, () => setPlaying(false)));
+audio.onerror = () => { el('audio-status').textContent = 'Audio could not be loaded (check your connection).'; };
+function know() {
+  if (!order.length || ended) return;
+  known.add(order[position]); Sync.setKnown(DECK, keyOf(order[position]), true);
+  order.splice(position, 1);
+  if (position >= order.length) { position = Math.max(order.length - 1, 0); ended = order.length > 0; }
+  flipped = false; chips(); render(true);
+}
+function flip() { if (!order.length || ended) return; flipped = !flipped; render(false); }
+function move(by) {
+  if (!order.length || ended) return;
+  const next = position + by;
+  if (next < 0) return;
+  if (next >= order.length) { ended = true; render(true); return; }
+  position = next; flipped = false; render(true);
+}
+function restartRound(shuffled) { ended = false; flipped = false; position = 0; roundSize = order.length; if (shuffled) shuffle(); else render(true); }
+function shuffle() { if (!order.length) return; ended = false; roundSize = order.length; for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; } position = 0; flipped = false; render(true); }
+
+// tap to flip; drag the card: left = next, right = previous (card follows the finger, flies off, next one slides in)
+// A touch during an animation freezes the card where it is and the finger takes over from there (no jumps).
+const card = el('card'), wrap = el('wrap');
+const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const EASE_OUT = 'cubic-bezier(.2,.8,.2,1)', EASE_IN = 'cubic-bezier(.4,0,1,1)', SPRING = 'cubic-bezier(.3,1.3,.5,1)';
+const OUT = 170, IN = 260;
+let sx = 0, sy = 0, lx = 0, lt = 0, vx = 0, dx = 0, base = 0, swiped = false, gesture = '', raf = 0;
+let anim = null;   // { timers, phase: 'out' | 'in' | 'settle', by, dir }
+const canMove = by => order.length && !ended && position + by >= 0;
+// opacity goes on the wrapper, never on the 3D card (opacity on a preserve-3d element breaks the flip faces in Safari)
+function pose(x, rot, ms, ease) {
+  card.style.transition = ms ? `translate ${ms}ms ${ease}, rotate ${ms}ms ${ease}` : 'none';
+  card.style.translate = `${x}px 0`;
+  card.style.rotate = `${rot}deg`;
+}
+function fade(o, ms) { wrap.style.transition = ms ? `opacity ${ms}ms ease` : 'none'; wrap.style.opacity = o; }
+function clearPose() { card.style.transition = card.style.translate = card.style.rotate = ''; wrap.style.transition = wrap.style.opacity = ''; }
+function start(phase, extra) { anim = { timers: [], phase, ...extra }; return anim; }
+function later(a, ms, fn) { a.timers.push(setTimeout(() => { if (anim === a) fn(); }, ms)); }
+function done(a) { if (anim === a) { anim = null; clearPose(); } }
+// stop whatever is animating, keep the card where it visually is; returns its x
+function freeze() {
+  const a = anim; if (!a) return 0;
+  anim = null; a.timers.forEach(clearTimeout);
+  if (a.phase === 'out') {          // old card still flying away: switch now, new card waits just off-centre
+    const x = -a.dir * wrap.clientWidth * 0.3;
+    pose(x, -a.dir * 3, 0); move(a.by); fade(1, 150);
+    return x;
+  }
+  const cs = getComputedStyle(card), x = parseFloat(cs.translate) || 0, r = parseFloat(cs.rotate) || 0;
+  pose(x, r, 0); fade(1, 150);
+  return x;
+}
+function settle() {
+  if (reduced()) { clearPose(); return; }
+  const a = start('settle');
+  pose(0, 0, 320, SPRING); fade(1, 150);
+  later(a, 340, () => done(a));
+}
+function animMove(by) {
+  freeze();
+  if (!canMove(by)) { if (by < 0 && order.length && !ended) bounce(); else settle(); return; }
+  if (reduced()) { clearPose(); move(by); return; }
+  const dir = by > 0 ? -1 : 1, w = wrap.clientWidth;
+  const a = start('out', { by, dir });
+  pose(dir * (w + 140), dir * 14, OUT, EASE_IN); fade(0.6, OUT);
+  later(a, OUT, () => {
+    a.phase = 'in';
+    pose(-dir * w * 0.3, -dir * 3, 0); fade(0, 0);
+    move(by);
+    void card.offsetWidth;          // commit the start position before animating in
+    pose(0, 0, IN, EASE_OUT); fade(1, IN * 0.6);
+    later(a, IN + 20, () => done(a));
+  });
+}
+function bounce() {
+  if (reduced()) return;
+  const a = start('settle');
+  pose(26, 1.5, 110, 'ease-out');
+  later(a, 110, () => { pose(0, 0, 320, SPRING); later(a, 340, () => done(a)); });
+}
+wrap.addEventListener('touchstart', e => {
+  gesture = '';
+  if (e.touches.length > 1 || e.target.closest('[data-say]')) return;
+  swiped = !!anim;                  // a touch that interrupts an animation never flips the card
+  base = freeze();
+  const t = e.touches[0]; sx = lx = t.clientX; sy = t.clientY; lt = e.timeStamp; vx = dx = 0; gesture = 'pending';
+}, { passive: true });
+wrap.addEventListener('touchmove', e => {
+  if (gesture !== 'pending' && gesture !== 'h') return;
+  const t = e.touches[0], mx = t.clientX - sx, my = t.clientY - sy;
+  if (gesture === 'pending') {
+    if (Math.abs(mx) < 6 && Math.abs(my) < 6) return;
+    gesture = Math.abs(mx) > Math.abs(my) * 0.8 && !hasSel() && order.length && !ended ? 'h' : 'v';
+    if (gesture === 'v') { if (base) settle(); return; }
+    sx = t.clientX;                 // follow from here so the card doesn't jump by the dead zone
+  }
+  const dt = e.timeStamp - lt;
+  if (dt > 0) vx = 0.7 * ((t.clientX - lx) / dt) + 0.3 * vx;   // smoothed velocity, px/ms
+  lx = t.clientX; lt = e.timeStamp;
+  dx = t.clientX - sx;
+  if (!raf) raf = requestAnimationFrame(() => {
+    raf = 0;
+    if (gesture !== 'h') return;
+    let x = base + dx;
+    if (x > 0 && !canMove(-1)) x *= 0.25;    // rubber-band when there is no previous card
+    pose(x, x / 20, 0);
+  });
+}, { passive: true });
+function endDrag() {
+  const was = gesture; gesture = '';
+  if (raf) { cancelAnimationFrame(raf); raf = 0; }
+  if (was !== 'h') { if (was === 'pending' && base) settle(); return; }
+  swiped = true;
+  const x = base + dx, w = wrap.clientWidth;
+  const flick = Math.abs(vx) > 0.3 && Math.abs(dx) > 15;
+  const dirX = flick ? vx : x;
+  const by = dirX < 0 ? 1 : -1;
+  if ((flick || Math.abs(x) > Math.min(90, w * 0.25)) && canMove(by)) animMove(by);
+  else settle();
+}
+wrap.addEventListener('touchend', endDrag);
+wrap.addEventListener('touchcancel', endDrag);
+// flip only on a plain click/tap: not when selecting text (drag, double-click, long-press) or clearing a selection
+const hasSel = () => String(window.getSelection ? getSelection() : '').trim() !== '';
+let selAtDown = false, flipTimer = null;
+el('card').addEventListener('pointerdown', () => { selAtDown = hasSel(); });
+function cardClick(e) {
+  clearTimeout(flipTimer);
+  if (e.detail > 1 || selAtDown || hasSel()) return;
+  // with a mouse, wait a moment so a double-click (word select) cancels the flip
+  const wait = matchMedia('(hover: hover) and (pointer: fine)').matches ? 250 : 0;
+  flipTimer = setTimeout(() => { if (!hasSel()) flip(); }, wait);
+}
+el('card').addEventListener('click', e => { if (swiped) { swiped = false; return; } if (e.target.closest('[data-say]')) return; cardClick(e); });
+document.querySelectorAll('[data-say]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); play(); }));
+el('flip').addEventListener('click', flip);
+el('prev').addEventListener('click', () => animMove(-1)); el('next').addEventListener('click', () => animMove(1));
+el('know').addEventListener('click', know);
+const resetKnown = () => { inSection().forEach(i => { known.delete(i); Sync.setKnown(DECK, keyOf(i), false); }); chips(); build(); };
+el('reset').addEventListener('click', () => { if (confirm('Mark all cards in this section as not known?')) resetKnown(); });
+// iOS can swallow the first tap on a screen that just appeared (it treats it as ending a scroll/gesture),
+// so the end-of-round buttons act on touchend directly; click still works for mouse/keyboard.
+// iOS Safari only shows :active (the press animation) when a touch listener exists — enable it for every button
+document.addEventListener('touchstart', () => {}, { passive: true });
+function onTap(b, fn) {
+  let tx = 0, ty = 0, ok = false, last = 0;
+  b.addEventListener('touchstart', e => { const t = e.touches[0]; tx = t.clientX; ty = t.clientY; ok = true; }, { passive: true });
+  b.addEventListener('touchmove', e => { const t = e.touches[0]; if (Math.hypot(t.clientX - tx, t.clientY - ty) > 12) ok = false; }, { passive: true });
+  b.addEventListener('touchend', e => { if (!ok) return; ok = false; e.preventDefault(); last = Date.now(); fn(); });
+  b.addEventListener('click', () => { if (Date.now() - last > 800) fn(); });
+}
+onTap(el('restart'), () => resetKnown());
+el('shuffle').addEventListener('click', shuffle);
+onTap(el('again'), () => restartRound(false));
+onTap(el('again-shuffle'), () => restartRound(true));
+onTap(el('back-last'), () => { ended = false; position = order.length - 1; flipped = false; render(true); });
+el('direction').addEventListener('click', () => { reverse = !reverse; el('direction').textContent = reverse ? 'Portuguese → English' : 'English → Portuguese'; flipped = false; render(true); });
+el('autoplay').addEventListener('click', () => { autoplay = !autoplay; el('autoplay').textContent = `Auto-play: ${autoplay ? 'on' : 'off'}`; el('autoplay').setAttribute('aria-pressed', String(autoplay)); });
+// iPad with keyboard
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.target.tagName === 'BUTTON' && e.code === 'Space') return;
+  if (ended && (e.key === 'Enter' || e.code === 'Space')) { e.preventDefault(); restartRound(false); return; }
+  if (e.code === 'Space') { e.preventDefault(); flip(); }
+  else if (e.key === 'ArrowRight') animMove(1);
+  else if (e.key === 'ArrowLeft') animMove(-1);
+  else if (e.key.toLowerCase() === 'q') play();
+  else if (e.key.toLowerCase() === 'k') know();
+});
+
+function syncRefresh() {
+  const before = known; loadKnown();
+  const wasEmpty = !order.length, current = order[position];
+  order = order.filter(i => !known.has(i));
+  const back = [...before].filter(i => !known.has(i) && (!section || cards[i].s === section));
+  if (wasEmpty && back.length) { chips(); build(); return; }
+  order.push(...back);
+  const p = order.indexOf(current);
+  if (p >= 0) position = p; else { position = Math.min(position, Math.max(order.length - 1, 0)); flipped = false; }
+  chips(); render(false, true);
+}
+Sync.onChange(syncRefresh);
+Sync.onStatus(t => { el('sync-btn').textContent = '☁︎ ' + t; });
+el('sync-btn').addEventListener('click', () => Sync.openSettings());
+chips(); build();
+</script>
+<!-- wordpop: select a word/phrase on a card -> popup with pronunciation (pt-PT voice) and translation.
+     Injected before </body> of every flashcard page (episode template, site templates). Needs global `cards`. -->
+<style>
+  #wordpop { position:fixed; z-index:50; display:none; max-width:min(340px,calc(100vw - 24px)); padding:10px 12px; border:1px solid #dce5df; border-radius:14px; background:#fff; color:#172b2a; box-shadow:0 14px 40px #193d3229; font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif; text-align:left; user-select:none; -webkit-user-select:none; }
+  #wordpop .wp-row { display:flex; align-items:center; gap:10px; }
+  #wordpop .wp-say { flex:none; display:grid; place-items:center; width:40px; height:40px; min-height:0; padding:0; border:1px solid #dce5df; border-radius:99px; background:#fff; color:#0c6958; box-shadow:0 2px 8px #193d3210; cursor:pointer; }
+  #wordpop .wp-say:hover, #wordpop .wp-say:active { background:#e5f3ee; border-color:#0c6958; }
+  #wordpop .wp-text { font-weight:700; overflow-wrap:anywhere; }
+  #wordpop .wp-tr { margin-top:6px; color:#172b2a; overflow-wrap:anywhere; }
+  #wordpop .wp-src { margin-top:4px; color:#61716e; font-size:.78rem; }
+  #wordpop .wp-src a { display:block; width:max-content; max-width:100%; color:#0c6958; line-height:1.9; }
+</style>
+<div id="wordpop" role="dialog" aria-label="Selected word">
+  <div class="wp-row"><button class="wp-say" type="button" aria-label="Listen"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5a1 1 0 0 0 1 1h3l4.3 3.6a.6.6 0 0 0 1-.46V5.36a.6.6 0 0 0-1-.46L8 8.5H5a1 1 0 0 0-1 1z"/><path d="M16.5 9.2a4 4 0 0 1 0 5.6"/><path d="M19.2 6.6a7.6 7.6 0 0 1 0 10.8"/></svg></button><span class="wp-text"></span></div>
+  <div class="wp-tr"></div>
+  <div class="wp-src"></div>
+</div>
+<script>
+(function () {
+  const pop = document.getElementById('wordpop');
+  const $ = s => pop.querySelector(s);
+  const cache = new Map();
+  let current = null, timer = null, reqId = 0;
+
+  // ---- glossary from this deck's cards ----
+  const norm = s => String(s).toLowerCase().replace(/^[^:]{1,20}:\s+/, '').replace(/\([^)]*\)/g, ' ')
+    .replace(/[“”"«»¿?¡!.,;:…—–]/g, ' ').replace(/\s+/g, ' ').trim();
+  const stripArt = s => s.replace(/^(o|a|os|as|um|uma|uns|umas|the|a|an|to)\s+/, '');
+  const ptMap = new Map(), enMap = new Map();
+  for (const c of (typeof cards !== 'undefined' ? cards : [])) {
+    const p = norm(c.pt), e = norm(c.en);
+    for (const k of new Set([p, stripArt(p)])) if (k && !ptMap.has(k)) ptMap.set(k, c.en.replace(/\s*\([^)]*\)\s*$/, ''));
+    for (const k of new Set([e, stripArt(e)])) if (k && !enMap.has(k)) enMap.set(k, c.pt.replace(/^[^:]{1,20}:\s+/, ''));
+  }
+
+  // ---- speech: Microsoft Raquel recordings ----
+  // 1) text equals a whole card -> that card's recording
+  // 2) single word -> audio/w/<hex>.mp3, pre-recorded by _tools/make_words.py (same file-name rule)
+  // 3) phrase -> Raquel voice if the browser has it (Microsoft Edge), else the word recordings one after another
+  // anything missing -> the device's own pt-PT voice
+  const cardAudio = new Map();
+  for (const c of (typeof cards !== 'undefined' ? cards : [])) { const k = norm(c.pt); if (k && c.a && !cardAudio.has(k)) cardAudio.set(k, c.a); }
+  const toks = t => t.normalize('NFC').toLowerCase().replace(/\([^)]*\)/g, ' ').match(/\p{L}+(?:-\p{L}+)*/gu) || [];
+  const wordFile = w => 'audio/w/' + [...new TextEncoder().encode(w.normalize('NFC').toLowerCase())].map(b => b.toString(16).padStart(2, '0')).join('') + '.mp3';
+  const wa = new Audio();
+  let voice = null, raquel = null, queue = [];
+  function pickVoice() {
+    const vs = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
+    raquel = vs.find(v => /raquel/i.test(v.name) && /^pt/i.test(v.lang)) || null;
+    voice = raquel || vs.find(v => /pt[-_]PT/i.test(v.lang) && /joana|catarina/i.test(v.name))
+         || vs.find(v => /pt[-_]PT/i.test(v.lang)) || vs.find(v => /^pt/i.test(v.lang)) || null;
+  }
+  if (window.speechSynthesis) { pickVoice(); speechSynthesis.addEventListener && speechSynthesis.addEventListener('voiceschanged', pickVoice); }
+  function systemSay(text) {
+    queue = []; wa.pause();
+    if (!window.speechSynthesis || !text) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'pt-PT'; if (voice) u.voice = voice; u.rate = 0.9;
+    speechSynthesis.speak(u);
+  }
+  function playList(files, text) {
+    queue = files.slice();
+    const next = () => {
+      if (!queue.length) return;
+      wa.src = queue.shift();
+      wa.play().catch(() => systemSay(text));
+    };
+    wa.onended = () => setTimeout(next, 60);
+    wa.onerror = () => systemSay(text);
+    next();
+  }
+  function speak(text) {
+    if (!text) return;
+    try { if (typeof audio !== 'undefined') audio.pause(); } catch (e) {}
+    if (window.speechSynthesis) speechSynthesis.cancel();
+    wa.pause();
+    const card = cardAudio.get(norm(text));
+    if (card) return playList([card], text);
+    const ws = toks(text);
+    if (ws.length === 1) return playList([wordFile(ws[0])], text);
+    if (raquel || ws.length === 0 || ws.length > 8) return systemSay(text);
+    playList(ws.map(wordFile), text);
+  }
+
+  // ---- translation: deck glossary first, then MyMemory ----
+  async function translate(text, from) {
+    const k = norm(text), map = from === 'pt' ? ptMap : enMap;
+    const hit = map.get(k) || map.get(stripArt(k));
+    if (hit) return { t: hit, src: 'this deck' };
+    const key = from + '|' + k;
+    if (cache.has(key)) return cache.get(key);
+    const pair = from === 'pt' ? 'pt-PT|en-GB' : 'en-GB|pt-PT';
+    const r = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=' + pair);
+    const j = await r.json();
+    const t = j && j.responseData && j.responseData.translatedText;
+    if (!t || j.responseStatus != 200) throw new Error('no result');
+    const res = { t, src: 'machine translation' };
+    cache.set(key, res);
+    return res;
+  }
+
+  function hide() { pop.style.display = 'none'; current = null; }
+  function place(rect) {
+    pop.style.display = 'block';
+    const w = pop.offsetWidth, h = pop.offsetHeight, m = 12;
+    const touch = matchMedia('(hover: none)').matches;   // iOS puts its own menu above the selection
+    let top = touch ? rect.bottom + 14 : rect.top - h - 10;
+    if (top < m) top = rect.bottom + 10;
+    if (top + h > innerHeight - m) top = Math.max(m, rect.top - h - 10);
+    let left = rect.left + rect.width / 2 - w / 2;
+    left = Math.min(Math.max(m, left), innerWidth - w - m);
+    pop.style.top = top + 'px'; pop.style.left = left + 'px';
+  }
+
+  async function show() {
+    const sel = window.getSelection();
+    const text = String(sel || '').replace(/\s+/g, ' ').trim();
+    if (!text || !sel.rangeCount || text.length > 120) { hide(); return; }
+    const range = sel.getRangeAt(0);
+    let node = range.commonAncestorContainer; if (node.nodeType !== 1) node = node.parentElement;
+    const term = node && node.closest('.card .term, .card .speaker');
+    if (!term) { hide(); return; }
+    const label = term.closest('.face').querySelector('.side-label');
+    const from = /portugu/i.test(label ? label.textContent : '') ? 'pt' : 'en';
+    if (current && current.text === text) { place(range.getBoundingClientRect()); return; }
+    const id = ++reqId;
+    current = { text, from, pt: from === 'pt' ? text : '' };
+    $('.wp-text').textContent = text;
+    $('.wp-tr').textContent = '…';
+    const gt = `https://translate.google.com/?sl=${from === 'pt' ? 'pt' : 'en'}&tl=${from === 'pt' ? 'en' : 'pt'}&text=${encodeURIComponent(text)}`;
+    // DeepL: the ?r= value makes every click a real page load (a hash-only change would not refresh the reused tab)
+    const dl = `https://www.deepl.com/en/translator?r=${Date.now()}#${from === 'pt' ? 'pt/en-gb' : 'en/pt-pt'}/${encodeURIComponent(text)}`;
+    const cam = `https://dictionary.cambridge.org/search/direct/?datasetsearch=${from === 'pt' ? 'portuguese-english' : 'english-portuguese'}&q=${encodeURIComponent(text)}`;
+    // links open in one named tab per site (pfc-google / pfc-deepl / pfc-cambridge / pfc-reverso), reused on later clicks
+  // Reverso conjugation (Russian UI) for a single Portuguese word; clitics like chamo-me -> chamo
+    const verb = w => { const t = toks(w || ''); return t.length === 1 ? t[0].replace(/-(me|te|se|nos|vos|lhe|lhes|o|a|os|as|lo|la|los|las|no|na|nos|nas)$/, '') : ''; };
+    const rv = w => w ? `<a href="https://glagol.reverso.net/${encodeURIComponent('спряжение-португальский-глагол-' + w)}.html" target="pfc-reverso">Reverso conjugation ↗</a>` : '';
+    let links = `<a href="${gt}" target="pfc-google">Google Translate ↗</a><a href="${dl}" target="pfc-deepl">DeepL ↗</a><a href="${cam}" target="pfc-cambridge">Cambridge Dictionary ↗</a>`;
+    const base = links;
+    links = base + rv(from === 'pt' ? verb(text) : '');
+    $('.wp-src').innerHTML = '';
+    $('.wp-say').style.display = from === 'pt' ? '' : 'none';
+    place(range.getBoundingClientRect());
+    try {
+      const r = await translate(text, from);
+      if (id !== reqId) return;
+      $('.wp-tr').textContent = r.t;
+      if (from === 'en') { current.pt = r.t; $('.wp-say').style.display = ''; links = base + rv(verb(r.t)); }
+      $('.wp-src').innerHTML = `${r.src}${links}`;
+    } catch (e) {
+      if (id !== reqId) return;
+      $('.wp-tr').textContent = navigator.onLine === false ? 'Offline: no translation' : 'No translation found';
+      $('.wp-src').innerHTML = links;
+    }
+    place(range.getBoundingClientRect());
+  }
+
+  // keep the selection when pressing the popup's buttons
+  pop.addEventListener('mousedown', e => { if (!e.target.closest('a')) e.preventDefault(); });
+  pop.addEventListener('click', e => e.stopPropagation());
+  // Reuse one tab per dictionary. Keep the window handle too: some sites (Google Translate) drop the tab's
+  // name, so a target="name" link alone would open a new tab every time.
+  const wins = {};
+  pop.addEventListener('click', e => {
+    const a = e.target.closest('a[target^="pfc-"]'); if (!a) return;
+    e.preventDefault();
+    const w = wins[a.target];
+    if (w && !w.closed) { try { w.location.href = a.href; w.focus(); return; } catch (x) {} }
+    wins[a.target] = window.open(a.href, a.target) || wins[a.target];
+  });
+  $('.wp-say').addEventListener('click', () => current && speak(current.pt));
+  document.addEventListener('selectionchange', () => { clearTimeout(timer); timer = setTimeout(show, 280); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { hide(); window.getSelection().removeAllRanges(); } });
+  addEventListener('scroll', () => { if (current) show(); }, { passive: true });
+  addEventListener('resize', () => { if (current) show(); });
+})();
+</script>
+
+</body>
+</html>
