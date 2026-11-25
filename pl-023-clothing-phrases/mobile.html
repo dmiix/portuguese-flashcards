@@ -463,13 +463,23 @@ chips(); build();
     playList(ws.map(wordFile), text);
   }
 
-  // ---- translation: deck glossary first, then MyMemory ----
+  // ---- translation: Google Translate first, then the deck glossary, then MyMemory ----
+  // translate.googleapis.com (client=gtx) is Google's free endpoint: no key, allows calls from web pages
+  async function google(text, from) {
+    const r = await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&dt=t&sl=' + (from === 'pt' ? 'pt' : 'en')
+      + '&tl=' + (from === 'pt' ? 'en' : 'pt-PT') + '&q=' + encodeURIComponent(text));
+    const j = await r.json();
+    const t = j && j[0] && j[0].map(x => x[0]).join('');
+    if (!r.ok || !t) throw new Error('no result');
+    return t;
+  }
   async function translate(text, from) {
     const k = norm(text), map = from === 'pt' ? ptMap : enMap;
-    const hit = map.get(k) || map.get(stripArt(k));
-    if (hit) return { t: hit, src: 'this deck' };
     const key = from + '|' + k;
     if (cache.has(key)) return cache.get(key);
+    try { const res = { t: await google(text, from), src: 'Google Translate' }; cache.set(key, res); return res; } catch (e) {}
+    const hit = map.get(k) || map.get(stripArt(k));
+    if (hit) return { t: hit, src: 'this deck' };
     const pair = from === 'pt' ? 'pt-PT|en-GB' : 'en-GB|pt-PT';
     const r = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=' + pair);
     const j = await r.json();
