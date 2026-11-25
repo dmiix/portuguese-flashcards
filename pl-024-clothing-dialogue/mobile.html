@@ -56,7 +56,7 @@
     button:active, .more summary:active { transform:scale(.96); }
     button:not(.primary):not(.say):active { background:#f3f7f4; }
     button.primary:active { background:#0a5a4b; }
-    button:focus-visible,.card:focus-visible { outline:3px solid var(--gold); outline-offset:3px; }
+    button:focus-visible { outline:3px solid var(--gold); outline-offset:3px; } .card:focus, .card:focus-visible { outline:none; }
     button.primary { border-color:var(--green); background:var(--green); color:white; }
     button.known { border-color:var(--green); color:var(--green); }
     .controls { display:grid; grid-template-columns:1fr 1.4fr 1fr; gap:8px; margin-top:12px; }
