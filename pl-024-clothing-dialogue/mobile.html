@@ -383,14 +383,15 @@ chips(); build();
 <style>
   #wordpop { position:fixed; z-index:50; display:none; max-width:min(340px,calc(100vw - 24px)); padding:10px 12px; border:1px solid #dce5df; border-radius:14px; background:#fff; color:#172b2a; box-shadow:0 14px 40px #193d3229; font:15px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif; text-align:left; user-select:none; -webkit-user-select:none; }
   #wordpop .wp-row { display:flex; align-items:center; gap:10px; }
-  #wordpop .wp-say { flex:none; min-height:38px; min-width:38px; padding:0 10px; border:1px solid #0c6958; border-radius:10px; background:#0c6958; color:#fff; font-size:1.05rem; cursor:pointer; }
+  #wordpop .wp-say { flex:none; display:grid; place-items:center; width:40px; height:40px; min-height:0; padding:0; border:1px solid #dce5df; border-radius:99px; background:#fff; color:#0c6958; box-shadow:0 2px 8px #193d3210; cursor:pointer; }
+  #wordpop .wp-say:hover, #wordpop .wp-say:active { background:#e5f3ee; border-color:#0c6958; }
   #wordpop .wp-text { font-weight:700; overflow-wrap:anywhere; }
   #wordpop .wp-tr { margin-top:6px; color:#172b2a; overflow-wrap:anywhere; }
   #wordpop .wp-src { margin-top:4px; color:#61716e; font-size:.78rem; }
-  #wordpop .wp-src a { color:#0c6958; line-height:1.9; }
+  #wordpop .wp-src a { display:block; width:max-content; max-width:100%; color:#0c6958; line-height:1.9; }
 </style>
 <div id="wordpop" role="dialog" aria-label="Selected word">
-  <div class="wp-row"><button class="wp-say" type="button" aria-label="Listen">🔊</button><span class="wp-text"></span></div>
+  <div class="wp-row"><button class="wp-say" type="button" aria-label="Listen"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5a1 1 0 0 0 1 1h3l4.3 3.6a.6.6 0 0 0 1-.46V5.36a.6.6 0 0 0-1-.46L8 8.5H5a1 1 0 0 0-1 1z"/><path d="M16.5 9.2a4 4 0 0 1 0 5.6"/><path d="M19.2 6.6a7.6 7.6 0 0 1 0 10.8"/></svg></button><span class="wp-text"></span></div>
   <div class="wp-tr"></div>
   <div class="wp-src"></div>
 </div>
@@ -514,8 +515,8 @@ chips(); build();
     // links open in one named tab per site (pfc-google / pfc-deepl / pfc-cambridge / pfc-reverso), reused on later clicks
   // Reverso conjugation (Russian UI) for a single Portuguese word; clitics like chamo-me -> chamo
     const verb = w => { const t = toks(w || ''); return t.length === 1 ? t[0].replace(/-(me|te|se|nos|vos|lhe|lhes|o|a|os|as|lo|la|los|las|no|na|nos|nas)$/, '') : ''; };
-    const rv = w => w ? `<br><a href="https://glagol.reverso.net/${encodeURIComponent('спряжение-португальский-глагол-' + w)}.html" target="pfc-reverso">Reverso conjugation ↗</a>` : '';
-    let links = `<a href="${gt}" target="pfc-google">Google Translate ↗</a> · <a href="${dl}" target="pfc-deepl">DeepL ↗</a><br><a href="${cam}" target="pfc-cambridge">Cambridge Dictionary ↗</a>`;
+    const rv = w => w ? `<a href="https://glagol.reverso.net/${encodeURIComponent('спряжение-португальский-глагол-' + w)}.html" target="pfc-reverso">Reverso conjugation ↗</a>` : '';
+    let links = `<a href="${gt}" target="pfc-google">Google Translate ↗</a><a href="${dl}" target="pfc-deepl">DeepL ↗</a><a href="${cam}" target="pfc-cambridge">Cambridge Dictionary ↗</a>`;
     const base = links;
     links = base + rv(from === 'pt' ? verb(text) : '');
     $('.wp-src').innerHTML = '';
@@ -526,7 +527,7 @@ chips(); build();
       if (id !== reqId) return;
       $('.wp-tr').textContent = r.t;
       if (from === 'en') { current.pt = r.t; $('.wp-say').style.display = ''; links = base + rv(verb(r.t)); }
-      $('.wp-src').innerHTML = `${r.src} · ${links}`;
+      $('.wp-src').innerHTML = `${r.src}${links}`;
     } catch (e) {
       if (id !== reqId) return;
       $('.wp-tr').textContent = navigator.onLine === false ? 'Offline: no translation' : 'No translation found';

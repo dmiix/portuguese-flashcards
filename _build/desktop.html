@@ -24,6 +24,11 @@
     .face { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:52px 34px; border:1px solid var(--line); border-radius:24px; background:white; box-shadow:0 14px 45px #193d3212; backface-visibility:hidden; -webkit-backface-visibility:hidden; text-align:center; }
     .back { transform:rotateY(180deg); background:var(--mint); }
     .side-label { position:absolute; top:20px; color:var(--muted); font-size:.75rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+    .say { position:absolute; bottom:12px; right:12px; display:grid; place-items:center; width:48px; height:48px; min-height:0; padding:0; border:1px solid var(--line); border-radius:99px; background:white; color:var(--green); box-shadow:0 2px 8px #193d3210; transition:transform .12s ease, background .15s, border-color .15s; }
+    .back .say { background:#f4fbf8; border-color:#c9e3d9; }
+    .say:hover, .say:active, .say.playing { background:var(--mint); border-color:var(--green); }
+    .say.playing .w1 { animation:wave 1s ease-in-out infinite; } .say.playing .w2 { animation:wave 1s ease-in-out .2s infinite; }
+    @keyframes wave { 50% { opacity:.25; } }
     .speaker { margin:0 0 8px; color:var(--green); font-size:.85rem; font-weight:750; letter-spacing:.08em; text-transform:uppercase; }
     .speaker:empty { display:none; }
     .term { margin:0; font-size:clamp(2rem,7vw,3.5rem); font-weight:750; line-height:1.15; overflow-wrap:anywhere; }
@@ -66,8 +71,8 @@
   <div class="progress" aria-hidden="true"><span id="bar"></span></div>
   <section class="card-wrap" aria-label="Flashcard">
     <article class="card" id="card" tabindex="0" role="button" aria-label="Flashcard. Press space to flip.">
-      <div class="face front"><span class="side-label" id="front-label">Português</span><p class="speaker" id="front-speaker"></p><p class="term" id="front"></p><p class="hint">Think of the meaning, then flip</p><span class="category" id="category"></span></div>
-      <div class="face back"><span class="side-label" id="back-label">English</span><p class="speaker" id="back-speaker"></p><p class="term" id="back"></p><p class="hint">Press flip or tap the card to continue</p><span class="category" id="back-category"></span></div>
+      <div class="face front"><span class="side-label" id="front-label">Português</span><button class="say" data-say aria-label="Hear Portuguese"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5a1 1 0 0 0 1 1h3l4.3 3.6a.6.6 0 0 0 1-.46V5.36a.6.6 0 0 0-1-.46L8 8.5H5a1 1 0 0 0-1 1z"/><path class="w1" d="M16.5 9.2a4 4 0 0 1 0 5.6"/><path class="w2" d="M19.2 6.6a7.6 7.6 0 0 1 0 10.8"/></svg></button><p class="speaker" id="front-speaker"></p><p class="term" id="front"></p><p class="hint">Think of the meaning, then flip</p><span class="category" id="category"></span></div>
+      <div class="face back"><span class="side-label" id="back-label">English</span><button class="say" data-say aria-label="Hear Portuguese"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5a1 1 0 0 0 1 1h3l4.3 3.6a.6.6 0 0 0 1-.46V5.36a.6.6 0 0 0-1-.46L8 8.5H5a1 1 0 0 0-1 1z"/><path class="w1" d="M16.5 9.2a4 4 0 0 1 0 5.6"/><path class="w2" d="M19.2 6.6a7.6 7.6 0 0 1 0 10.8"/></svg></button><p class="speaker" id="back-speaker"></p><p class="term" id="back"></p><p class="hint">Press flip or tap the card to continue</p><span class="category" id="back-category"></span></div>
     </article>
   </section>
   <section class="done" aria-live="polite"><h2>All known! 🎉</h2><p id="done-text">You marked every card in this section as known.</p><button class="primary" id="restart">Study again</button></section>
@@ -79,7 +84,6 @@
     <button class="known" id="know">✓ Know it</button>
   </nav>
   <div class="secondary">
-    <button id="speak">🔊 Hear Portuguese</button>
     <button id="shuffle">Shuffle deck</button>
     <button id="direction">Practice English → Portuguese</button>
     <button id="autoplay" aria-pressed="true">Auto-play: on</button>
@@ -152,8 +156,11 @@ function play() {
   const c = cards[order[position]];
   audio.pause(); audio.src = c.a; audio.currentTime = 0;
   audio.play().then(() => { el('audio-status').textContent = ''; })
-    .catch(() => { el('audio-status').textContent = 'Click “Hear Portuguese” to play audio.'; });
+    .catch(() => { el('audio-status').textContent = 'Click the speaker to hear the Portuguese.'; });
 }
+const setPlaying = on => document.querySelectorAll('[data-say]').forEach(b => b.classList.toggle('playing', on));
+audio.addEventListener('playing', () => setPlaying(true));
+['pause', 'ended', 'error', 'emptied'].forEach(ev => audio.addEventListener(ev, () => setPlaying(false)));
 audio.onerror = () => { el('audio-status').textContent = 'Audio file not found — keep this page next to its “audio” folder.'; };
 function know() {
   if (!order.length) return;
@@ -185,9 +192,9 @@ function cardClick(e) {
   const wait = matchMedia('(hover: hover) and (pointer: fine)').matches ? 250 : 0;
   flipTimer = setTimeout(() => { if (!hasSel()) flip(); }, wait);
 }
-el('card').addEventListener('click', cardClick); el('flip').addEventListener('click', flip);
+el('card').addEventListener('click', e => { if (!e.target.closest('[data-say]')) cardClick(e); }); el('flip').addEventListener('click', flip);
 el('prev').addEventListener('click', () => move(-1)); el('next').addEventListener('click', () => move(1));
-el('speak').addEventListener('click', play);
+document.querySelectorAll('[data-say]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); play(); }));
 el('know').addEventListener('click', know);
 const resetKnown = () => { inSection().forEach(i => { known.delete(i); Sync.setKnown(DECK, keyOf(i), false); }); chips(); build(); };
 el('reset').addEventListener('click', resetKnown); el('restart').addEventListener('click', resetKnown);
