@@ -11,6 +11,8 @@
     main { width:min(100%,720px); }
     .top { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:16px; }
     .eyebrow { margin:0 0 4px; color:var(--green); font-size:.78rem; font-weight:750; letter-spacing:.12em; text-transform:uppercase; }
+    .eyebrow a { display:inline-block; padding:4px 0; color:inherit; text-decoration:none; }
+    .eyebrow a:hover { text-decoration:underline; }
     h1 { margin:0; font-size:clamp(1.35rem,4vw,2rem); line-height:1.15; }
     .count { color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; }
     .chips { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 14px; }
@@ -64,13 +66,13 @@
 <body>
 <main>
   <header class="top">
-    <div><p class="eyebrow">Portuguese Lab · Episode 027</p><h1>027 · Vocabulary — at the coffee shop</h1></div>
+    <div><p class="eyebrow"><a href="../">← All decks</a></p><h1>027 · Vocabulary — at the coffee shop</h1></div>
     <div class="count" id="count" aria-live="polite"></div>
   </header>
   <div class="chips" id="chips" role="group" aria-label="Sections"></div>
   <div class="progress" aria-hidden="true"><span id="bar"></span></div>
   <section class="card-wrap" aria-label="Flashcard">
-    <article class="card" id="card" tabindex="0" role="button" aria-label="Flashcard. Press space to flip.">
+    <article class="card" id="card" tabindex="0" role="button" aria-label="Flashcard. Press Command to flip.">
       <div class="face front"><span class="side-label" id="front-label">Português</span><button class="say" data-say aria-label="Hear Portuguese"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5a1 1 0 0 0 1 1h3l4.3 3.6a.6.6 0 0 0 1-.46V5.36a.6.6 0 0 0-1-.46L8 8.5H5a1 1 0 0 0-1 1z"/><path class="w1" d="M16.5 9.2a4 4 0 0 1 0 5.6"/><path class="w2" d="M19.2 6.6a7.6 7.6 0 0 1 0 10.8"/></svg></button><p class="speaker" id="front-speaker"></p><p class="term" id="front"></p><p class="hint">Think of the meaning, then flip</p><span class="category" id="category"></span></div>
       <div class="face back"><span class="side-label" id="back-label">English</span><button class="say" data-say aria-label="Hear Portuguese"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5a1 1 0 0 0 1 1h3l4.3 3.6a.6.6 0 0 0 1-.46V5.36a.6.6 0 0 0-1-.46L8 8.5H5a1 1 0 0 0-1 1z"/><path class="w1" d="M16.5 9.2a4 4 0 0 1 0 5.6"/><path class="w2" d="M19.2 6.6a7.6 7.6 0 0 1 0 10.8"/></svg></button><p class="speaker" id="back-speaker"></p><p class="term" id="back"></p><p class="hint">Press flip or tap the card to continue</p><span class="category" id="back-category"></span></div>
     </article>
@@ -91,7 +93,7 @@
     <button id="sync-btn">☁︎ Sync: off</button>
   </div>
   <p class="audio-status" id="audio-status" aria-live="polite"></p>
-  <p class="help">Keyboard: ← / → to move · Space to flip · Q to play · K know it · R to shuffle · Enter to start a new round. Audio: Microsoft Raquel (pt-PT). · <a href="../" style="color:var(--green)">All decks</a> · <a href="mobile.html" style="color:var(--green)">Touch version</a></p>
+  <p class="help">Keyboard: W / E previous / next · ⌘ Command to flip · Q to play · K know it · R to shuffle · Enter to start a new round. Audio: Microsoft Raquel (pt-PT). · <a href="mobile.html" style="color:var(--green)">Touch version</a></p>
 </main>
 <script src="../sync.js"></script>
 <script>
@@ -147,7 +149,7 @@ function render(fresh, quiet) {
   el('category').textContent = c.s; el('back-category').textContent = c.s;
   el('count').textContent = `Card ${position + 1} of ${order.length} · Known ${done}/${total}`;
   el('card').classList.toggle('flipped', flipped);
-  el('card').setAttribute('aria-label', `${front}. ${flipped ? 'Answer shown.' : 'Press space to flip.'}`);
+  el('card').setAttribute('aria-label', `${front}. ${flipped ? 'Answer shown.' : 'Press Command to flip.'}`);
   // Auto-play when the Portuguese side becomes visible
   if (!quiet && autoplay && ((fresh && !reverse) || (!fresh && flipped && reverse))) play();
 }
@@ -204,13 +206,22 @@ el('again-shuffle').addEventListener('click', () => restartRound(true));
 el('back-last').addEventListener('click', () => { ended = false; position = order.length - 1; flipped = false; render(true); });
 el('direction').addEventListener('click', () => { reverse = !reverse; el('direction').textContent = reverse ? 'Practice Portuguese → English' : 'Practice English → Portuguese'; flipped = false; render(true); });
 el('autoplay').addEventListener('click', () => { autoplay = !autoplay; el('autoplay').textContent = `Auto-play: ${autoplay ? 'on' : 'off'}`; el('autoplay').setAttribute('aria-pressed', String(autoplay)); });
+// Command alone (pressed and released with no other key) flips; Cmd+C, Cmd+Tab etc. don't
+let metaAlone = false;
+document.addEventListener('keyup', e => {
+  if (e.key === 'Meta' && metaAlone) { metaAlone = false; if (!ended) flip(); }
+});
+window.addEventListener('blur', () => { metaAlone = false; });
+document.addEventListener('mousedown', () => { metaAlone = false; });
 document.addEventListener('keydown', e => {
+  if (e.key === 'Meta') { metaAlone = !e.repeat; return; }
+  metaAlone = false;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.target.tagName === 'BUTTON' && e.code === 'Space') return;
   if (ended && (e.key === 'Enter' || e.code === 'Space')) { e.preventDefault(); restartRound(false); return; }
-  if (ended && e.key === 'ArrowLeft') { el('back-last').click(); return; }
-  if (e.code === 'Space') { e.preventDefault(); flip(); }
-  else if (e.key === 'ArrowRight') move(1);
-  else if (e.key === 'ArrowLeft') move(-1);
+  if (ended && e.key.toLowerCase() === 'w') { el('back-last').click(); return; }
+  if (e.key.toLowerCase() === 'e') move(1);
+  else if (e.key.toLowerCase() === 'w') move(-1);
   else if (e.key.toLowerCase() === 'r') shuffle();
   else if (e.key.toLowerCase() === 'q') play();
   else if (e.key.toLowerCase() === 'k') know();
