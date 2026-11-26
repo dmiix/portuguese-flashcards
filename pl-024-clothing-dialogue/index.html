@@ -93,7 +93,7 @@
     <button id="sync-btn">☁︎ Sync: off</button>
   </div>
   <p class="audio-status" id="audio-status" aria-live="polite"></p>
-  <p class="help">Keyboard: W / E previous / next · ⌘ Command to flip · Q to play · K know it · R to shuffle · Enter to start a new round. Audio: Microsoft Raquel (pt-PT). · <a href="mobile.html" style="color:var(--green)">Touch version</a></p>
+  <p class="help">Keyboard: W / E or ← / → previous / next · ⌘ Command to flip · Q to play · K know it · R to shuffle · Enter to start a new round. Audio: Microsoft Raquel (pt-PT). · <a href="mobile.html" style="color:var(--green)">Touch version</a></p>
 </main>
 <script src="../sync.js"></script>
 <script>
@@ -219,9 +219,9 @@ document.addEventListener('keydown', e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.target.tagName === 'BUTTON' && e.code === 'Space') return;
   if (ended && (e.key === 'Enter' || e.code === 'Space')) { e.preventDefault(); restartRound(false); return; }
-  if (ended && e.key.toLowerCase() === 'w') { el('back-last').click(); return; }
-  if (e.key.toLowerCase() === 'e') move(1);
-  else if (e.key.toLowerCase() === 'w') move(-1);
+  if (ended && (e.key.toLowerCase() === 'w' || e.key === 'ArrowLeft')) { el('back-last').click(); return; }
+  if (e.key.toLowerCase() === 'e' || e.key === 'ArrowRight') move(1);
+  else if (e.key.toLowerCase() === 'w' || e.key === 'ArrowLeft') move(-1);
   else if (e.key.toLowerCase() === 'r') shuffle();
   else if (e.key.toLowerCase() === 'q') play();
   else if (e.key.toLowerCase() === 'k') know();
