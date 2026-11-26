@@ -36,6 +36,7 @@
     .term { margin:0; font-size:clamp(2rem,7vw,3.5rem); font-weight:750; line-height:1.15; overflow-wrap:anywhere; }
     .term.md { font-size:clamp(1.5rem,4.5vw,2.3rem); line-height:1.25; }
     .term.lg { font-size:clamp(1.15rem,3.4vw,1.6rem); line-height:1.35; font-weight:700; }
+    .term.conj { font-size:clamp(1.05rem,2.6vw,1.35rem); line-height:1.45; font-weight:650; }   /* multi-line text, e.g. conjugation lists */
     .term { white-space:pre-line; }
     .note { margin:12px 0 0; color:var(--muted); font-size:1rem; line-height:1.4; } .note:empty { display:none; }
     .hint { margin:18px 0 0; color:var(--muted); }
@@ -113,7 +114,7 @@ const el = id => document.getElementById(id);
 const audio = new Audio();
 
 function split(pt) { const m = pt.match(SPEAKER); return m ? [m[1], pt.slice(m[0].length)] : ['', pt]; }
-function sizeClass(t) { return t.length > 60 ? 'term lg' : t.length > 24 ? 'term md' : 'term'; }
+function sizeClass(t) { return t.includes('\n') ? 'term conj' : t.length > 60 ? 'term lg' : t.length > 24 ? 'term md' : 'term'; }
 
 function build() {
   order = cards.map((c, i) => i).filter(i => (!section || cards[i].s === section) && !known.has(i));
