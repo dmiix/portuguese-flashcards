@@ -48,6 +48,8 @@
     .term { margin:0; font-size:clamp(2.2rem,10vw,4rem); font-weight:750; line-height:1.15; overflow-wrap:anywhere; }
     .term.md { font-size:clamp(1.6rem,6.5vw,2.6rem); line-height:1.25; }
     .term.lg { font-size:clamp(1.2rem,4.6vw,1.7rem); line-height:1.35; font-weight:700; }
+    .term { white-space:pre-line; }
+    .note { margin:12px 0 0; color:var(--muted); font-size:1rem; line-height:1.4; } .note:empty { display:none; }
     .hint { margin:16px 0 0; color:var(--muted); font-size:.9rem; }
     .category { position:absolute; bottom:18px; padding:5px 11px; border-radius:99px; background:#f3f5f2; color:var(--green); font-size:.8rem; font-weight:700; }
     .back .category { background:#d4ebe3; }
@@ -92,8 +94,8 @@
   <div class="stage">
     <section class="card-wrap" id="wrap" aria-label="Flashcard">
       <article class="card" id="card" tabindex="0" role="button" aria-label="Flashcard. Tap to flip.">
-        <div class="face front"><span class="side-label" id="front-label">Português</span><button class="say" data-say aria-label="Hear Portuguese"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5a1 1 0 0 0 1 1h3l4.3 3.6a.6.6 0 0 0 1-.46V5.36a.6.6 0 0 0-1-.46L8 8.5H5a1 1 0 0 0-1 1z"/><path class="w1" d="M16.5 9.2a4 4 0 0 1 0 5.6"/><path class="w2" d="M19.2 6.6a7.6 7.6 0 0 1 0 10.8"/></svg></button><p class="speaker" id="front-speaker"></p><p class="term" id="front"></p><p class="hint">Tap to flip · swipe for next</p><span class="category" id="category"></span></div>
-        <div class="face back"><span class="side-label" id="back-label">English</span><button class="say" data-say aria-label="Hear Portuguese"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5a1 1 0 0 0 1 1h3l4.3 3.6a.6.6 0 0 0 1-.46V5.36a.6.6 0 0 0-1-.46L8 8.5H5a1 1 0 0 0-1 1z"/><path class="w1" d="M16.5 9.2a4 4 0 0 1 0 5.6"/><path class="w2" d="M19.2 6.6a7.6 7.6 0 0 1 0 10.8"/></svg></button><p class="speaker" id="back-speaker"></p><p class="term" id="back"></p><p class="hint">Swipe ← next · → previous</p><span class="category" id="back-category"></span></div>
+        <div class="face front"><span class="side-label" id="front-label">Português</span><button class="say" data-say aria-label="Hear Portuguese"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5a1 1 0 0 0 1 1h3l4.3 3.6a.6.6 0 0 0 1-.46V5.36a.6.6 0 0 0-1-.46L8 8.5H5a1 1 0 0 0-1 1z"/><path class="w1" d="M16.5 9.2a4 4 0 0 1 0 5.6"/><path class="w2" d="M19.2 6.6a7.6 7.6 0 0 1 0 10.8"/></svg></button><p class="speaker" id="front-speaker"></p><p class="term" id="front"></p><p class="hint" id="front-hint">Tap to flip · swipe for next</p><span class="category" id="category"></span></div>
+        <div class="face back"><span class="side-label" id="back-label">English</span><button class="say" data-say aria-label="Hear Portuguese"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5a1 1 0 0 0 1 1h3l4.3 3.6a.6.6 0 0 0 1-.46V5.36a.6.6 0 0 0-1-.46L8 8.5H5a1 1 0 0 0-1 1z"/><path class="w1" d="M16.5 9.2a4 4 0 0 1 0 5.6"/><path class="w2" d="M19.2 6.6a7.6 7.6 0 0 1 0 10.8"/></svg></button><p class="speaker" id="back-speaker"></p><p class="term" id="back"></p><p class="note" id="back-note"></p><p class="hint">Swipe ← next · → previous</p><span class="category" id="back-category"></span></div>
       </article>
     </section>
     <section class="done all" aria-live="polite"><h2>All known! 🎉</h2><p>You marked every card in this section as known.</p><div class="row"><button class="primary" id="restart">Study again</button></div></section>
@@ -164,17 +166,21 @@ function render(fresh, quiet) {
     return;
   }
   const c = cards[order[position]], [who, pt] = split(c.pt);
-  const front = reverse ? c.en : pt, back = reverse ? pt : c.en;
+  // q = question card (prompt -> Portuguese answer): ignores the direction toggle, audio plays on the answer
+  const q = !!c.q, rev = reverse && !q;
+  const front = rev ? c.en : pt, back = rev ? pt : c.en;
   el('front').textContent = front; el('front').className = sizeClass(front);
   el('back').textContent = back; el('back').className = sizeClass(back);
   el('front-speaker').textContent = who; el('back-speaker').textContent = who;
-  el('front-label').textContent = reverse ? 'English' : 'Português';
-  el('back-label').textContent = reverse ? 'Português' : 'English';
+  el('front-label').textContent = c.fl || (rev ? 'English' : 'Português');
+  el('back-label').textContent = c.bl || (rev ? 'Português' : 'English');
+  el('front-hint').textContent = c.h || 'Tap to flip · swipe for next';
+  el('back-note').textContent = c.n || '';
   el('category').textContent = c.s; el('back-category').textContent = c.s;
   el('count').innerHTML = `${position + 1} / ${order.length}<br>Known ${done}/${total}`;
   el('card').classList.toggle('flipped', flipped);
   el('card').setAttribute('aria-label', `${front}. ${flipped ? 'Answer shown.' : 'Tap to flip.'}`);
-  if (!quiet && autoplay && ((fresh && !reverse) || (!fresh && flipped && reverse))) queuePlay();
+  if (!quiet && autoplay && ((fresh && !rev && !q) || (!fresh && flipped && (rev || q)))) queuePlay();
 }
 let playTimer = 0;
 function queuePlay() {   // wait until the card has settled so audio loading doesn't stutter the animation
